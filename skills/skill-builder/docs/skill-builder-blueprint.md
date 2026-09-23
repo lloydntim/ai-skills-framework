@@ -1,4 +1,4 @@
-# Skill Framework Blueprint
+# Skill Builder Blueprint
 
 How the `cv-translator` project is built, written so the same structure can be applied to any
 other skill. Nothing here is about CVs specifically — the CV skill is only used as the worked
@@ -164,8 +164,8 @@ Three things must stay separated, and none of them may leak into either of the o
 | Platform invocation settings | Settings that only make sense inside one host: manual versus automatic invocation, model routing, subagent wiring, tool or permission grants. | `disable-model-invocation: true` (Claude Code only), a host's own permission list |
 
 **The canonical skill remains authoritative.** An adapter reads it and repackages it; it never
-forks a second copy of the rules to edit separately. `scripts/build-framework-skill.ts` enforces
-this literally for skill-framework's own packaging: it fails loudly if the platform template stops
+forks a second copy of the rules to edit separately. `scripts/build-skill-builder.ts` enforces
+this literally for skill-builder's own packaging: it fails loudly if the platform template stops
 pointing at `reference/blueprint.md`, and it injects `disable-model-invocation: true` at build
 time rather than storing it in the portable source, so the portable artifact's frontmatter never
 carries a field the open specification does not define.

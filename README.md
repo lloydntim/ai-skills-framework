@@ -1,4 +1,4 @@
-# Skills
+# AI Skills Framework
 
 Skills for a language model, each in its own folder, sharing one small framework — and the
 machinery to tell whether any of them actually helps.
@@ -12,7 +12,7 @@ thing.
 |---|---|---|
 | [cv-translator](skills/cv-translator) | Translates and improves CV wording between German and English | cv |
 | [cover-letter-writer](skills/cover-letter-writer) | Writes a cover letter or Anschreiben for one role, using only the candidate's CV | job-search |
-| [skill-framework](skills/skill-framework) | Creates, restructures and evaluates the skills here; holds the blueprint they follow | skills |
+| [skill-builder](skills/skill-builder) | Creates, restructures and evaluates the skills here; holds the blueprint they follow | skills |
 
 The shared code is in [framework/](framework). **How everything fits together is in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Read that first.**
@@ -23,10 +23,11 @@ The shared code is in [framework/](framework). **How everything fits together is
 pnpm install
 pnpm test           # every test; none calls a model, so no API key is needed
 pnpm typecheck
-pnpm framework:validate
+pnpm skill-builder:validate
+pnpm skills:validate  # every skill against framework/; private ones too if PRIVATE_SKILLS_ROOT is set
 ```
 
-Those three commands are the whole free suite, and they are what runs before any commit. Nothing in
+Those four commands are the whole free suite, and they are what runs before any commit. Nothing in
 them makes a network request. Commands that call a real model cost money and are marked as paid in
 each skill's README; they need `ANTHROPIC_API_KEY` in a `.env` file (copy `.env.example` to the
 repository root, or into one skill's folder to use a different key for it).
@@ -62,8 +63,8 @@ than prose:
   [`scripts/privacy-scan.ts`](scripts/privacy-scan.ts)** — the privacy boundary as executable code,
   not as a convention. See "How private context is kept out" below.
 
-`skill-framework` is the skill that builds the others. It holds the blueprint every skill here
-follows ([`docs/skill-framework-blueprint.md`](skills/skill-framework/docs/skill-framework-blueprint.md)),
+`skill-builder` is the skill that builds the others. It holds the blueprint every skill here
+follows ([`docs/skill-builder-blueprint.md`](skills/skill-builder/docs/skill-builder-blueprint.md)),
 including section 7.15, the questionnaire that decides what each model call should see — and it is
 evaluated by the same harness it prescribes, against its own synthetic scenarios.
 
@@ -110,8 +111,10 @@ refuses. Three checks keep it that way, and they are not the same check:
 | `skills/*/src/skill-package.test.ts` | The layout that makes the other two possible |
 
 Both privacy tests share one definition of "private data", in `scripts/privacy-scan.ts`, and both
-skip cleanly here, where there is no private material to compare against. They are live in a checkout
-that has a `reference/` folder mounted, which is where the risk actually is. Findings are reported
+skip cleanly here, where there is no private material to compare against. They are live where the
+private repository is checked out next to this one and `PRIVATE_SKILLS_ROOT` names it, which is where
+the risk actually is: they read its `reference/` folder in place and scan this repository against it.
+The architecture page's "Private skills" section explains that setup. Findings are reported
 by file and label, never by the value that matched.
 
 [docs/CONTEXT-ENGINEERING.md](docs/CONTEXT-ENGINEERING.md) covers this and the other half of the

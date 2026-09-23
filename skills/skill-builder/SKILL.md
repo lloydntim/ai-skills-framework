@@ -1,5 +1,5 @@
 ---
-name: skill-framework
+name: skill-builder
 description: >-
   Structures a model skill so its quality can be measured and its regressions
   caught: one source file for the instructions, mechanical checks with unit
@@ -10,7 +10,7 @@ description: >-
   the output better. Also covers how to write the instruction file itself.
 ---
 
-# Skill Framework
+# Skill Builder
 
 ## Read the blueprint first
 
@@ -51,7 +51,7 @@ wait for what step 7 shows.
 **Restructure and rewrite are two separate changes.** When porting an existing skill, move the
 instruction text without editing its wording first. Change the wording in a second pass. Doing both
 at once means that when the output changes you cannot tell which change caused it — which is the
-exact problem this framework exists to solve, so do not create it while setting the framework up.
+exact problem this skill exists to solve, so do not create it while setting the skill up.
 
 **Moving text is not editing text.** Preserve the existing skill's wording exactly unless the user
 asks for rewriting. If a rule looks wrong while you are moving it, say so and leave it alone.

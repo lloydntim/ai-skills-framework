@@ -1,7 +1,7 @@
 # How skills are built here
 
 This repository holds several skills. Every skill is laid out the same way, so if you know one, you
-can find things in any other. One of them, `skill-framework`, is the skill used to create and change
+can find things in any other. One of them, `skill-builder`, is the skill used to create and change
 the others (see "Add a skill"). This page explains the layout, the flow of a request, how quality is
 measured, how versions are tracked, and how to add or export a skill.
 
@@ -50,6 +50,8 @@ docs/ARCHITECTURE.md             this page
 docs/CONTEXT-ENGINEERING.md      what each model call is shown, and how that was measured
 scripts/export-skill.ts          the export command
 scripts/privacy-scan.ts          what "private" means, for the export and the tracked tree
+scripts/skill-sources.ts         where public and private skills are found
+scripts/validate-skills.ts       checks every skill, public and private, against framework/
 ```
 
 Only some parts are required. Every skill needs `SKILL.md`, `skill.json`, `README.md` and tests.
@@ -212,7 +214,7 @@ Nothing in this repository's skills passes one today.
 
 ### Where this is not configuration
 
-`skill-framework`'s eval has one role, `advisor`, which is not a `ModelRole`. It carries its own
+`skill-builder`'s eval has one role, `advisor`, which is not a `ModelRole`. It carries its own
 default but is configured from the same two fields on `evals/config/models.json` and validated by
 the same parser.
 
@@ -254,7 +256,7 @@ on the private path or silently reporting its hash while public cases ran. The c
 recorded on the dataset's version entry (`"declared"` or `"fallback"`), so two runs of the same
 named dataset can never look like the same measurement when one ran against private cases and the
 other against the public fallback; `regression-compatibility.ts` treats a source mismatch as
-`INCOMPATIBLE`. A dataset with no `publicDir` (cv-translator's, skill-framework's) is unaffected:
+`INCOMPATIBLE`. A dataset with no `publicDir` (cv-translator's, skill-builder's) is unaffected:
 its `dir` is the only copy, and a missing one is still a real, reported problem.
 
 ## What each model call sees
@@ -266,8 +268,8 @@ skill's README under "What each call sees" (Cover Letter Writer has the worked e
 the answers that apply to that skill, each next to the test that checks it. They are not in
 `skill.json` or `SKILL.md`: nothing reads them at run time, and the model does not need them. The
 code that builds each prompt is their working form. The questions, the rules and the checks are in
-the blueprint, section 7.15 (`skills/skill-framework/docs/skill-framework-blueprint.md`); the
-`skill-framework` skill works through them whenever it creates or changes a skill.
+the blueprint, section 7.15 (`skills/skill-builder/docs/skill-builder-blueprint.md`); the
+`skill-builder` skill works through them whenever it creates or changes a skill.
 
 Reading a reference file on demand, subagents, prompt caching and a host's memory are ways a host or
 provider can meet a requirement. They belong in an adapter or a provider adapter, never in the
@@ -312,9 +314,9 @@ Fake providers are in `framework/testing/`.
 
 ## Add a skill
 
-Use the `skill-framework` skill (`skills/skill-framework/`) for this. It holds the blueprint the
+Use the `skill-builder` skill (`skills/skill-builder/`) for this. It holds the blueprint the
 steps below come from, and it asks the questions a new skill should answer before it is built. Build
-it into Claude Code with `pnpm --filter skill-framework build`.
+it into Claude Code with `pnpm --filter skill-builder build`.
 
 1. Copy an existing skill folder to `skills/<new-name>/` and clear out what is specific to the old one.
 2. Write `SKILL.md` and `README.md`. Anything about one real person goes in the skill's `reference/`
@@ -330,6 +332,57 @@ it into Claude Code with `pnpm --filter skill-framework build`.
 9. Run `pnpm test`. `src/skill-package.test.ts` tells you what is missing from the layout.
 
 A skill that is only instructions can stop after step 4. It needs no pipeline or evals.
+
+A private skill follows the same steps with the same `skill-builder`, in the private repository's
+`skills/<new-name>/` instead (see "Private skills"). Name that destination when you start; nothing
+here creates a skill anywhere but `skills/` by default. Check it with `pnpm skills:validate`.
+
+## Private skills
+
+Skills that should not be public live in a separate private Git repository, checked out next to
+this one, never inside it:
+
+```
+parent/
+  ai-skills-framework/     this repository: framework/, skill-builder, docs, validation
+  <private repository>/    skills/<name>/ with the same layout, plus private data
+```
+
+That repository holds private skills and private data only. It does not carry a copy of
+`framework/`, `skill-builder` or these docs; the ones here are canonical. Keeping the two in step
+means keeping private skills **compatible** with this framework, not keeping two copies of it.
+
+`PRIVATE_SKILLS_ROOT` connects them. Set it in the shell or in this repository's `.env` (ignored by
+git) to the private repository's root; a relative path is resolved against this repository's root.
+
+| `PRIVATE_SKILLS_ROOT` | What happens |
+|---|---|
+| unset or empty | Public skills only. This is a normal public checkout, and what CI is |
+| a folder that does not exist | The same, and `pnpm skills:validate` says so in one line |
+| the private repository | Its `skills/*/skill.json` folders are private skills. `pnpm skills:validate` checks them, and the privacy tests compare this repository against its `skills/cover-letter-writer/reference/` |
+| a folder inside this repository | Refused: that would be a nested checkout |
+
+`pnpm skills:validate` puts every skill, public and private, through the same two checks:
+`checkSkillPackage`, and a typecheck of the skill's code with `@skills/framework` resolved to this
+repository's `framework/`, whichever copy the skill's own workspace links. It reports each skill as
+`public/<name>` or `private/<name>`, and a problem by file and line, never by a private file's
+content. It writes nothing to either repository. Everything other than the framework (vitest, zod,
+`@types`) still resolves from the skill's own `node_modules`, so run `pnpm install` in the private
+repository first.
+
+Private skills do not join this workspace. `pnpm test`, `pnpm typecheck` and exports here cover
+public skills only; a private skill's own tests run inside its repository.
+
+After changing anything shared (`framework/`, `skill-builder`, the rules above):
+
+1. Change it here.
+2. Run `pnpm test`, `pnpm typecheck`, `pnpm skill-builder:validate` and `pnpm skills:validate`.
+3. Set `PRIVATE_SKILLS_ROOT` to the private repository, if it is not set already.
+4. Run `pnpm skills:validate` again, now covering private skills.
+5. Change a private skill only where that run reports it incompatible.
+6. Commit each repository on its own. No commit spans both.
+
+Compatibility is whatever these checks say, so `skill.json` records no framework version.
 
 ## Export a skill
 

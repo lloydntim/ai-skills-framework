@@ -31,7 +31,7 @@ are skipped where it is absent. To use the skill for someone else, copy
 
 ## What is built
 
-This follows the skill-framework blueprint, all 8 steps.
+This follows the skill-builder blueprint, all 8 steps.
 
 | Step | Status |
 |---|---|

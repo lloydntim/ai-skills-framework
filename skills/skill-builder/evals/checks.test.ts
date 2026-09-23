@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FRAMEWORK_CASES } from './cases';
+import { BUILDER_CASES } from './cases';
 import {
   decidesWhatTheSkillLoads,
   explainsCostBeforeScaffolding,
@@ -67,7 +67,7 @@ describe('decidesWhatTheSkillLoads', () => {
   });
 
   it('cannot be passed by repeating the request, which names none of the decisions', () => {
-    const scenario = FRAMEWORK_CASES.find((c) => c.id === 'context-for-new-skill')!;
+    const scenario = BUILDER_CASES.find((c) => c.id === 'context-for-new-skill')!;
     const { requestText, cleanup } = scenario.setup();
     cleanup();
     expect(decidesWhatTheSkillLoads(requestText).ok).toBe(false);

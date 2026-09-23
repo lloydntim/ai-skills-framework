@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { buildFrameworkSkill } from './build-framework-skill';
+import { buildBuilderSkill } from './build-skill-builder';
 
 /**
- * Free, mechanical validation of the Skill Framework's own source and generated artifacts. Every
+ * Free, mechanical validation of the Skill Builder's own source and generated artifacts. Every
  * check here reads text and file paths only: no model call, no network, no cost. This runs on
- * every commit and inside `npm test` (see validate-framework-skill.test.ts).
+ * every commit and inside `npm test` (see validate-skill-builder.test.ts).
  */
 
 const REPO_ROOT = path.join(__dirname, '..');
@@ -29,10 +29,10 @@ export interface ValidateOptions {
   newContentFiles?: string[];
 }
 
-/** Files newly written for the Skill Framework's own testing/evaluation harness. */
+/** Files newly written for the Skill Builder's own testing/evaluation harness. */
 export const DEFAULT_NEW_CONTENT_FILES = [
-  'scripts/validate-framework-skill.ts',
-  'scripts/validate-framework-skill.test.ts',
+  'scripts/validate-skill-builder.ts',
+  'scripts/validate-skill-builder.test.ts',
 ];
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n/;
@@ -96,19 +96,19 @@ function extractReferencedPaths(text: string): string[] {
   return Array.from(found);
 }
 
-export function validateFrameworkSkill(options: ValidateOptions = {}): ValidationIssue[] {
+export function validateBuilderSkill(options: ValidateOptions = {}): ValidationIssue[] {
   const repoRoot = options.repoRoot ?? REPO_ROOT;
   const issues: ValidationIssue[] = [];
 
   const templatePath = path.join(repoRoot, 'SKILL.md');
-  const blueprintPath = path.join(repoRoot, 'docs', 'skill-framework-blueprint.md');
+  const blueprintPath = path.join(repoRoot, 'docs', 'skill-builder-blueprint.md');
   const claudeSkillTemplatePath = path.join(repoRoot, 'skill', 'claude-skill-template.md');
-  const buildScriptPath = path.join(repoRoot, 'scripts', 'build-framework-skill.ts');
+  const buildScriptPath = path.join(repoRoot, 'scripts', 'build-skill-builder.ts');
 
   if (!fs.existsSync(templatePath) || !fs.existsSync(blueprintPath)) {
     issues.push({
       rule: 'source-exists',
-      message: 'SKILL.md or docs/skill-framework-blueprint.md is missing.',
+      message: 'SKILL.md or docs/skill-builder-blueprint.md is missing.',
     });
     return issues;
   }
@@ -118,17 +118,17 @@ export function validateFrameworkSkill(options: ValidateOptions = {}): Validatio
 
   // Build both targets into a scratch directory so the checks below see exactly what a real
   // install would contain, without touching the user's installed ~/.claude/skills.
-  const scratchDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-framework-validate-'));
-  let portable: ReturnType<typeof buildFrameworkSkill>;
-  let claudeCode: ReturnType<typeof buildFrameworkSkill>;
+  const scratchDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-builder-validate-'));
+  let portable: ReturnType<typeof buildBuilderSkill>;
+  let claudeCode: ReturnType<typeof buildBuilderSkill>;
   try {
-    portable = buildFrameworkSkill({
+    portable = buildBuilderSkill({
       target: 'portable',
       out: path.join(scratchDir, 'portable'),
       templatePath,
       blueprintPath,
     });
-    claudeCode = buildFrameworkSkill({
+    claudeCode = buildBuilderSkill({
       target: 'claude-code',
       out: path.join(scratchDir, 'claude-code'),
       templatePath,
@@ -214,14 +214,14 @@ export function validateFrameworkSkill(options: ValidateOptions = {}): Validatio
   if (portableRef !== expectedBlueprint) {
     issues.push({
       rule: 'blueprint-matches-source',
-      message: 'Portable build\'s reference/blueprint.md differs from docs/skill-framework-blueprint.md.',
+      message: 'Portable build\'s reference/blueprint.md differs from docs/skill-builder-blueprint.md.',
       file: portable.referencePath,
     });
   }
   if (claudeCodeRef !== expectedBlueprint) {
     issues.push({
       rule: 'blueprint-matches-source',
-      message: 'Claude Code build\'s reference/blueprint.md differs from docs/skill-framework-blueprint.md.',
+      message: 'Claude Code build\'s reference/blueprint.md differs from docs/skill-builder-blueprint.md.',
       file: claudeCode.referencePath,
     });
   }
@@ -366,12 +366,12 @@ export function validateFrameworkSkill(options: ValidateOptions = {}): Validatio
 }
 
 function main() {
-  const issues = validateFrameworkSkill();
+  const issues = validateBuilderSkill();
   if (issues.length === 0) {
-    console.log('Skill Framework validation passed: 0 issues.');
+    console.log('Skill Builder validation passed: 0 issues.');
     return;
   }
-  console.error(`Skill Framework validation failed: ${issues.length} issue(s).\n`);
+  console.error(`Skill Builder validation failed: ${issues.length} issue(s).\n`);
   for (const issue of issues) {
     console.error(`[${issue.rule}] ${issue.message}${issue.file ? ` (${issue.file})` : ''}`);
   }

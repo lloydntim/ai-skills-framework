@@ -84,7 +84,7 @@ function isReasoningEffort(value: unknown): value is ReasoningEffort {
 /**
  * Reads the optional `reasoning` / `maxOutputTokens` fields off one authored role entry, falling
  * back to `defaults` for whichever is absent. `roleName` only names the role in error messages, so
- * this also serves a caller whose roles are not `ModelRole`s (the skill-framework advisor).
+ * this also serves a caller whose roles are not `ModelRole`s (the skill-builder advisor).
  *
  * Absent means "use the default", which is a real choice and is recorded as such. A *present* but
  * wrong value is always an error — never quietly corrected to the default — because a typo'd

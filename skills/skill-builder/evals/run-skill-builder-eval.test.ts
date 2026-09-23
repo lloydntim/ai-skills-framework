@@ -3,9 +3,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { QueuedResponseProvider } from '@skills/framework/testing/queued-response-provider';
-import { FRAMEWORK_CASES } from './cases';
-import { approveFrameworkBaseline, saveFrameworkRunResult } from './reporter';
-import { runFrameworkEval } from './run-framework-eval';
+import { BUILDER_CASES } from './cases';
+import { approveBuilderBaseline, saveBuilderRunResult } from './reporter';
+import { runBuilderEval } from './run-skill-builder-eval';
 
 /**
  * Tests the evaluation *machinery* (case running, checks, reporting, the approval gate) with a
@@ -14,7 +14,7 @@ import { runFrameworkEval } from './run-framework-eval';
  * calls a real, paid model and is never invoked here.
  */
 
-const TWO_CASES = FRAMEWORK_CASES.filter((c) => c.id === 'new-low-risk-skill' || c.id === 'mature-high-risk-text-skill');
+const TWO_CASES = BUILDER_CASES.filter((c) => c.id === 'new-low-risk-skill' || c.id === 'mature-high-risk-text-skill');
 
 // Naive, generic answers a model with no access to the skill would plausibly give (variant A).
 const BAD_TRANSCRIPTS = {
@@ -22,7 +22,7 @@ const BAD_TRANSCRIPTS = {
   highRisk: "I'd suggest writing some tests for this and maybe using a model to grade the outputs sometimes.",
 };
 
-// Responses that actually follow the skill-framework blueprint (variant B).
+// Responses that actually follow the skill-builder blueprint (variant B).
 const GOOD_TRANSCRIPTS = {
   lowRisk:
     'This is a new, low-risk skill, so steps 1-2 are enough here: move the instructions into one file ' +
@@ -37,7 +37,7 @@ const GOOD_TRANSCRIPTS = {
 let tmpResultsDir: string;
 
 beforeEach(() => {
-  tmpResultsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-framework-eval-results-'));
+  tmpResultsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-builder-eval-results-'));
 });
 
 afterEach(() => {
@@ -48,9 +48,9 @@ function response(text: string) {
   return { text };
 }
 
-describe('runFrameworkEval (fake provider)', () => {
+describe('runBuilderEval (fake provider)', () => {
   it('variant B passes and variant A fails the same discriminating cases', async () => {
-    // Loop order in run-framework-eval.ts is: for each case, for each variant in ['A', 'B'].
+    // Loop order in run-skill-builder-eval.ts is: for each case, for each variant in ['A', 'B'].
     const provider = new QueuedResponseProvider([
       response(BAD_TRANSCRIPTS.lowRisk), // case 1, variant A
       response(GOOD_TRANSCRIPTS.lowRisk), // case 1, variant B
@@ -58,7 +58,7 @@ describe('runFrameworkEval (fake provider)', () => {
       response(GOOD_TRANSCRIPTS.highRisk), // case 2, variant B
     ]);
 
-    const run = await runFrameworkEval({
+    const run = await runBuilderEval({
       mode: 'full',
       provider,
       providerName: 'fake',
@@ -85,7 +85,7 @@ describe('runFrameworkEval (fake provider)', () => {
       response(GOOD_TRANSCRIPTS.lowRisk),
     ]);
 
-    const run = await runFrameworkEval({
+    const run = await runBuilderEval({
       mode: 'full',
       provider,
       providerName: 'fake',
@@ -107,7 +107,7 @@ describe('runFrameworkEval (fake provider)', () => {
       response(GOOD_TRANSCRIPTS.highRisk),
     ]);
 
-    const run = await runFrameworkEval({ mode: 'smoke', provider, providerName: 'fake', model: 'fake-model' });
+    const run = await runBuilderEval({ mode: 'smoke', provider, providerName: 'fake', model: 'fake-model' });
 
     expect(run.results).toHaveLength(2);
     expect(run.results.every((r) => r.variant === 'B')).toBe(true);
@@ -119,7 +119,7 @@ describe('runFrameworkEval (fake provider)', () => {
       GOOD_TRANSCRIPTS.lowRisk + ' I will approve the baseline now since the run finished.';
     const provider = new QueuedResponseProvider([response(unsafeTranscript)]);
 
-    const run = await runFrameworkEval({
+    const run = await runBuilderEval({
       mode: 'full',
       provider,
       providerName: 'fake',
@@ -136,7 +136,7 @@ describe('runFrameworkEval (fake provider)', () => {
 describe('reporter persistence', () => {
   it('saves each run under its own timestamped filename and refuses to overwrite one', async () => {
     const provider = new QueuedResponseProvider([response(GOOD_TRANSCRIPTS.lowRisk)]);
-    const run = await runFrameworkEval({
+    const run = await runBuilderEval({
       mode: 'full',
       provider,
       providerName: 'fake',
@@ -145,15 +145,15 @@ describe('reporter persistence', () => {
       variants: ['B'],
     });
 
-    const filePath = saveFrameworkRunResult(run, tmpResultsDir);
+    const filePath = saveBuilderRunResult(run, tmpResultsDir);
     expect(fs.existsSync(filePath)).toBe(true);
 
-    expect(() => saveFrameworkRunResult(run, tmpResultsDir)).toThrow(/Refusing to overwrite/);
+    expect(() => saveBuilderRunResult(run, tmpResultsDir)).toThrow(/Refusing to overwrite/);
   });
 
   it('refuses to approve a baseline without explicit confirmation that it was read', async () => {
     const provider = new QueuedResponseProvider([response(GOOD_TRANSCRIPTS.lowRisk)]);
-    const run = await runFrameworkEval({
+    const run = await runBuilderEval({
       mode: 'approve',
       provider,
       providerName: 'fake',
@@ -162,10 +162,10 @@ describe('reporter persistence', () => {
       variants: ['B'],
     });
 
-    expect(() => approveFrameworkBaseline(run, tmpResultsDir, false)).toThrow(/Refusing to approve/);
+    expect(() => approveBuilderBaseline(run, tmpResultsDir, false)).toThrow(/Refusing to approve/);
     expect(fs.existsSync(path.join(tmpResultsDir, 'approved-baseline.json'))).toBe(false);
 
-    const filePath = approveFrameworkBaseline(run, tmpResultsDir, true);
+    const filePath = approveBuilderBaseline(run, tmpResultsDir, true);
     expect(fs.existsSync(filePath)).toBe(true);
   });
 });
