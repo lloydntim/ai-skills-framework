@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { parseCandidateProfile, type CandidateProfile } from '../skills/cover-letter-writer/src/candidate-profile';
+import { resolvePrivateSkillsRoot } from './skill-sources';
 
 /**
  * Everything private about the candidate lives in cover-letter-writer's reference/ folder: the
@@ -10,11 +11,23 @@ import { parseCandidateProfile, type CandidateProfile } from '../skills/cover-le
  * be — an export archive (scripts/export-skill.test.ts) or the tracked working tree
  * (scripts/tracked-tree-privacy.test.ts). Both reuse this one implementation, so there is a single
  * place that knows what "the candidate's private data" means.
+ *
+ * The folder is read where it is, never copied: inside this checkout if one is mounted there,
+ * otherwise in the sibling private repository that PRIVATE_SKILLS_ROOT names.
  */
-export const PRIVATE_DIR = path.join(__dirname, '..', 'skills', 'cover-letter-writer', 'reference');
+const REFERENCE_IN_SKILL = path.join('skills', 'cover-letter-writer', 'reference');
+
+function privateDir(): string {
+  const mounted = path.join(__dirname, '..', REFERENCE_IN_SKILL);
+  const privateRoot = resolvePrivateSkillsRoot();
+  if (fs.existsSync(mounted) || privateRoot.state !== 'found') return mounted;
+  return path.join(privateRoot.root, REFERENCE_IN_SKILL);
+}
+
+export const PRIVATE_DIR = privateDir();
 const PROFILE_FILE = path.join(PRIVATE_DIR, 'candidate-profile.md');
 
-/** False in a public checkout, where reference/ was never mounted. Both detectors are no-ops then. */
+/** False in a public checkout with no private repository configured. Both detectors are no-ops then. */
 export const havePrivateReferenceData = fs.existsSync(PROFILE_FILE);
 
 export function loadPrivateProfile(): CandidateProfile {

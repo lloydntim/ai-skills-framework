@@ -10,9 +10,10 @@ exports/
 .claude/settings.local.json
 
 # Private material. A skill's reference/ folder holds a real person's CV, profile and the
-# regression cases built from them; skills/private/ holds skills that are not published. Both are
-# a separate, private repository cloned into this checkout. Nothing under either is ever committed
-# here — not with `git add -f` either. See README.md, "How private context is kept out".
+# regression cases built from them; skills/private/ holds skills that are not published. Both belong
+# in the separate private repository, checked out next to this one (PRIVATE_SKILLS_ROOT), and are
+# still refused here in case one is ever mounted inside this checkout. Nothing under either is ever
+# committed here — not with `git add -f` either. See README.md, "How private context is kept out".
 skills/*/reference/
 skills/private/
 

@@ -24,9 +24,10 @@ pnpm install
 pnpm test           # every test; none calls a model, so no API key is needed
 pnpm typecheck
 pnpm skill-builder:validate
+pnpm skills:validate  # every skill against framework/; private ones too if PRIVATE_SKILLS_ROOT is set
 ```
 
-Those three commands are the whole free suite, and they are what runs before any commit. Nothing in
+Those four commands are the whole free suite, and they are what runs before any commit. Nothing in
 them makes a network request. Commands that call a real model cost money and are marked as paid in
 each skill's README; they need `ANTHROPIC_API_KEY` in a `.env` file (copy `.env.example` to the
 repository root, or into one skill's folder to use a different key for it).
@@ -110,8 +111,10 @@ refuses. Three checks keep it that way, and they are not the same check:
 | `skills/*/src/skill-package.test.ts` | The layout that makes the other two possible |
 
 Both privacy tests share one definition of "private data", in `scripts/privacy-scan.ts`, and both
-skip cleanly here, where there is no private material to compare against. They are live in a checkout
-that has a `reference/` folder mounted, which is where the risk actually is. Findings are reported
+skip cleanly here, where there is no private material to compare against. They are live where the
+private repository is checked out next to this one and `PRIVATE_SKILLS_ROOT` names it, which is where
+the risk actually is: they read its `reference/` folder in place and scan this repository against it.
+The architecture page's "Private skills" section explains that setup. Findings are reported
 by file and label, never by the value that matched.
 
 [docs/CONTEXT-ENGINEERING.md](docs/CONTEXT-ENGINEERING.md) covers this and the other half of the
