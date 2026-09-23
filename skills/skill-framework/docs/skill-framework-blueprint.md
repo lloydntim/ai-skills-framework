@@ -193,11 +193,16 @@ by default.
 directly:
 
 ```
-GenerationRequest  { systemPrompt?, userPrompt, model, temperature?, maxOutputTokens?, metadata? }
+GenerationRequest  { systemPrompt?, userPrompt, model, temperature?, maxOutputTokens?, reasoning?, metadata? }
 GenerationResult   { text, usage?, latencyMs?, cost? }
 TokenUsage         { inputTokens?, outputTokens?, totalTokens?, cachedInputTokens?, reasoningTokens? }
 ModelProvider       generate(request): Promise<GenerationResult>
 ```
+
+`reasoning` is a provider-neutral ladder (`none` | `low` | `medium` | `high` | `xhigh` | `max`) set
+per role, not per call site, and `maxOutputTokens` is the ceiling reasoning *and* the answer share.
+A skill never writes a provider's own thinking parameters: the adapter translates the ladder into
+whatever the model accepts, and refuses a pairing it cannot express rather than guessing.
 
 Every field past `text` is optional, because not every provider reports every one of them, and a
 field the provider did not report must stay absent rather than being invented (section 7.11).

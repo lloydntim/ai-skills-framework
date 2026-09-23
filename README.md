@@ -140,6 +140,11 @@ it has nothing to compare them against until a baseline is approved here.
 See [docs/CONTEXT-ENGINEERING.md](docs/CONTEXT-ENGINEERING.md#3-known-development-issue) for a known
 issue affecting paid eval runs started from a public checkout. It does not affect the free suite.
 
+Which model answers for each role, how hard it reasons and the output budget it has are all in that
+skill's `config/models.json`. The settings are role-aware — the role writing the output is not
+configured like the role scoring it — and provider-neutral, so a skill never names a vendor's
+reasoning parameters. The architecture page has the details and the reasoning behind the defaults.
+
 ## Export one skill
 
 ```

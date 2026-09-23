@@ -61,6 +61,7 @@ The pipeline, prompts, datasets and evals are needed only if the skill has that 
 | Shared, in `framework/` | Belongs to the skill |
 |---|---|
 | The model-provider contract and the model roles | The rules that check the output (`checks`) |
+| Reasoning levels, output budgets and how a provider expresses them | Which level and budget each role is configured with |
 | Provider adapters (Anthropic) and the price table | The prompt text and `SKILL.md` |
 | Hashing, prompt files, `skill.json` and versions | The test cases |
 | Run metadata (git commit, versions, hashes) | The scoring dimensions and their thresholds |
@@ -81,8 +82,11 @@ produces a pass or fail, and that an evaluator produces scores.
 - **Evaluator**: an offline model that scores one output against a rubric.
 - **Pairwise judge**: an offline model that picks the better of two outputs, without knowing which is which.
 - **Role**: a place where the system calls a model. The five roles are `generator`, `validator`,
-  `reviser`, `evaluator` and `pairwiseJudge`. Each is set to a provider and model in `config/models.json`.
-  Checks call no model, so they are not a role.
+  `reviser`, `evaluator` and `pairwiseJudge`. Each is set to a provider, a model and its runtime
+  settings in `config/models.json` (see "Runtime configuration"). Checks call no model, so they are
+  not a role.
+- **Reasoning**: how hard a role is asked to think, on a provider-neutral ladder from `none` to
+  `max`. Set per role; a skill never names a provider's own thinking field.
 - **Variant**: what is being tested. `A` is the plain model, `B` is the skill in one pass, `C` is the
   full production pipeline.
 
@@ -102,6 +106,11 @@ of the pipeline are tests of the real thing.
 Models are only ever reached through the `ModelProvider` interface in `framework/provider/types.ts`.
 Only `framework/provider/anthropic-provider.ts` imports a vendor SDK. Adding another provider means one
 new adapter and one line in `framework/provider/registry.ts`.
+
+A call that returns no usable text — because the model spent its whole output budget on reasoning —
+fails with a framework error naming the reasoning level, the budget and how much of the output went
+to reasoning, rather than becoming a confusing "did not return JSON" further down. How much each
+role is allowed to reason, and out of what budget, is in "Runtime configuration" below.
 
 ## How quality is measured (evals)
 
@@ -139,6 +148,81 @@ measure the same thing. It reports each difference with a level and a stable cod
 
 So changing the evaluator, its prompt or the dataset never looks like a change in the skill's quality.
 
+## Runtime configuration
+
+`config/models.json` says which model answers for each role. It also says **how that role is run**:
+
+```json
+{
+  "generator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "high", "maxOutputTokens": 16000 },
+  "validator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 }
+}
+```
+
+Both runtime fields are optional; leaving one out takes that role's framework default from
+`framework/provider/role-runtime.ts`. A value that is *present* but wrong is always an error, never
+quietly corrected, and every one of these errors is raised while the configuration is being read —
+before any provider is called, so a bad file costs nothing to discover.
+
+### Reasoning is per role, and it is not a provider field
+
+`reasoning` is a provider-neutral ladder: `none`, `low`, `medium`, `high`, `xhigh`, `max`. A skill
+says how hard a job is; the provider adapter decides what that means on the wire. For Anthropic that
+is adaptive thinking plus `output_config.effort` on the models that take effort, and an explicit
+thinking budget on the models that reject it — `claude-haiku-4-5` errors on `output_config`, so
+sending one family's fields to the other is a 400, not a worse answer. The pairing is checked for
+free: each skill has a test that every role in every shipped config can be translated into fields
+its model accepts.
+
+A skill never writes a provider's reasoning field. Nothing in `skills/` mentions `thinking`,
+`output_config` or `budget_tokens`; only `framework/provider/anthropic-provider.ts` does.
+
+`none` exists as a deliberate per-role opt-out and is never a default. On Claude Opus 5, turning
+thinking off is documented to make the model occasionally write a tool call into visible text and to
+leak `<thinking>` tags into the answer; the supported way to spend less on reasoning is a lower rung,
+not `none`.
+
+### The defaults, and why
+
+| Role | Reasoning | Budget | Why |
+|---|---|---|---|
+| `generator` | `high` | 16,000 | Produces the deliverable under many hard constraints from a large input. `high` is also the API's own default effort, so this asks for no less thinking than the model would choose. |
+| `reviser` | `high` | 16,000 | The generator's job plus reconciling a list of failures. If anything it is the harder call. |
+| `validator` | `medium` | 8,000 | Scores against a fixed rubric — but that rubric makes it trace every claim, technology and metric back to the CV at the right ownership level. That is a comparison, not a lookup, so it sits one rung down rather than at `low`. Its visible answer is a small fixed JSON object; what it needs room for is the reasoning in front of it. |
+| `evaluator` | `medium` | 8,000 | The same shape of judgement against explicit criteria. |
+| `pairwiseJudge` | `medium` | 8,000 | Compares two fixed outputs against a rubric; the comparison *is* the reasoning. |
+
+These prioritise reliable output over the smallest token bill. `low` for the three scoring roles is
+the obvious tuning target, but it is something to measure on a paid run, not to assume for free.
+
+### Output budgets
+
+`maxOutputTokens` is a ceiling for **reasoning and the visible answer together** — the model spends
+the budget on both, so a budget sized only for the answer is the failure this configuration exists
+to prevent. It is role-specific, not model-specific: how much reasoning happens is a property of the
+role, and it is the reasoning that drives the size.
+
+Budgets must be between 256 and 64,000. The ceiling is not the models' own limit (Sonnet 5 and Opus
+5 accept 128,000) — it is the largest budget a *non-streaming* request can honestly ask for, and
+this adapter makes one non-streaming request.
+
+A call site may still pass its own `maxOutputTokens` when it is producing something unusually long;
+the role's budget is a **floor**, so such a request is left alone and a smaller one is raised.
+Nothing in this repository's skills passes one today.
+
+### Where this is not configuration
+
+`skill-framework`'s eval has one role, `advisor`, which is not a `ModelRole`. It carries its own
+default but is configured from the same two fields on `evals/config/models.json` and validated by
+the same parser.
+
+### What a run records
+
+`toModelRolesConfig` writes the *effective* runtime settings into every saved run and into
+`evals/history.jsonl`, whether or not the config named them. A result has to be able to say how hard
+each role was asked to think; "the file said nothing" is not an answer a later reader can act on.
+This is also why a run made before this configuration existed is not comparable with one made after.
+
 ## Versions and hashes
 
 `skill.json` is where a person writes versions. The framework computes hashes from the files.
@@ -153,8 +237,8 @@ its version does not, the comparison warns you to bump the version.
 A prompt's version is in `skill.json`, not inside the prompt file. Changing a version number then
 never changes the hash of what the model reads.
 
-Every run also records: the skill name and version, the dataset used, each role's provider and model,
-the git commit, whether the skill or framework had uncommitted changes, request, token, cost and time
+Every run also records: the skill name and version, the dataset used, each role's provider, model,
+reasoning level and output budget, the git commit, whether the skill or framework had uncommitted changes, request, token, cost and time
 totals for the run, and a hash of the configuration.
 
 ### Datasets in a checkout without private material
@@ -203,8 +287,11 @@ What this repository already provides:
 | Check that private data never leaves | `scripts/export-skill.test.ts` for an export (which always leaves out `reference/` and `data/`), and `scripts/tracked-tree-privacy.test.ts` for the repository itself; both share the detectors in `scripts/privacy-scan.ts` |
 | Check that leaving parts out costs no quality | the golden regression with selection on and off, repeated (paid) |
 
-Prompt caching is not used. It would belong in the provider adapter, not in a skill, and turning it
-on means also changing how cost and input tokens are counted (see `anthropic-provider.ts`).
+Prompt caching is not used, and enabling reasoning did not change that. It would belong in the
+provider adapter, not in a skill. Nothing here requests it, so the provider reports no cached tokens
+and ordinary accounting is unaffected; the adapter already reads `cache_read_input_tokens` if it
+ever appears. Turning it on is a separate change, because cached and cache-writing input are priced
+differently from new input and neither the price table nor `estimateCost` distinguishes them today.
 
 ## Testing
 
@@ -298,5 +385,8 @@ cases were replaced with synthetic ones.
 - The per-variant token tracker (`token-tracker.ts`) exists only in cv-translator. The per-request
   report (`framework/evals/token-usage-report.ts`) is shared: both skills print it with `--token-report=true`.
 - Cover Letter Writer's usage ledger (`src/usage`) is its own; it wraps the framework provider.
+- Prompt caching is a deliberate follow-up, not an omission: see "What each model call sees". It
+  needs a price table that separates cached, cache-writing and new input, which is why it was not
+  folded into the reasoning work.
 - Approved baselines made before this layout do not record prompt or dataset versions. Comparing
   against one shows "unverifiable" warnings until a new baseline is approved, which needs a paid run.

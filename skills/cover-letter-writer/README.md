@@ -404,13 +404,17 @@ string, never on a concrete provider class. `src/provider/registry.ts` is the on
 `AnthropicProvider` is named. Concretely, a real call happens only when one of the **Paid** commands
 above runs `loadModelRoles()` → `resolveModelRoles()` → `new AnthropicProvider()` → `.generate()`.
 
-**Runtime configuration** (`src/runtime/runtime-config.json`) is a separate concern from model
-selection: `temperature`, `maxOutputTokens`, `maxRevisionAttempts` (the hard cap on bounded, targeted
-revision passes), and the `thresholds` each semantic-validation score must clear. Changing which
-model a role uses never requires touching this file, and vice versa.
+**Runtime configuration** is split by what a setting is a property of. `src/runtime/runtime-config.json`
+holds what is about this skill's pipeline: `temperature`, `maxRevisionAttempts` (the hard cap on
+bounded, targeted revision passes), and the `thresholds` each semantic-validation score must clear.
+`config/models.json` holds what is about a role and its model: the provider, the model, how hard
+that role reasons and the output budget it reasons and answers within — the two have to be chosen
+together, since the model spends one budget on both. No file in this skill names a provider's own
+thinking parameters; the ladder is provider-neutral and `framework/provider/anthropic-provider.ts`
+translates it. See `docs/ARCHITECTURE.md`, "Runtime configuration".
 
 **Result metadata** — every persisted `EvalRunResult` under `evals/results/` records `modelRoles`
-(the effective provider/model actually used for every role that run), independent of the top-level
+(the effective provider, model, reasoning level and output budget actually used for every role that run), independent of the top-level
 `gitCommit`/`skillHash`/`caseInputHash`/`configHash` provenance fields described below. `npm run
 generate`'s stderr output prints the same role/model/token/cost information for a single ad hoc run.
 
