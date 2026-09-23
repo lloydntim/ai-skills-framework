@@ -4,21 +4,21 @@ import path from 'node:path';
 import { hashObject, sha256 } from '@skills/framework/hash';
 import type { CheckName } from './checks';
 
-export interface FrameworkCheckOutcome {
+export interface BuilderCheckOutcome {
   name: CheckName;
   ok: boolean;
   detail: string;
 }
 
-export interface FrameworkCaseResult {
+export interface BuilderCaseResult {
   caseId: string;
   variant: 'A' | 'B';
   transcript: string;
-  checks: FrameworkCheckOutcome[];
+  checks: BuilderCheckOutcome[];
   passed: boolean;
 }
 
-export interface FrameworkRunResult {
+export interface BuilderRunResult {
   timestamp: string;
   mode: 'smoke' | 'full' | 'compare' | 'approve';
   provider: string;
@@ -28,7 +28,7 @@ export interface FrameworkRunResult {
   skillHash: string;
   casesHash: string;
   configHash: string;
-  results: FrameworkCaseResult[];
+  results: BuilderCaseResult[];
   summary: {
     total: number;
     passed: number;
@@ -56,8 +56,8 @@ function isGitDirty(cwd: string): boolean | null {
   }
 }
 
-export function buildSummary(results: FrameworkCaseResult[]): FrameworkRunResult['summary'] {
-  const byVariant: FrameworkRunResult['summary']['byVariant'] = {
+export function buildSummary(results: BuilderCaseResult[]): BuilderRunResult['summary'] {
+  const byVariant: BuilderRunResult['summary']['byVariant'] = {
     A: { total: 0, passed: 0 },
     B: { total: 0, passed: 0 },
   };
@@ -73,18 +73,18 @@ export function buildSummary(results: FrameworkCaseResult[]): FrameworkRunResult
   };
 }
 
-export interface BuildFrameworkRunOptions {
-  mode: FrameworkRunResult['mode'];
+export interface BuildBuilderRunOptions {
+  mode: BuilderRunResult['mode'];
   provider: string;
   model: string;
-  results: FrameworkCaseResult[];
+  results: BuilderCaseResult[];
   skillContent: string;
   casesSnapshot: unknown;
   modelsConfig: unknown;
   cwd?: string;
 }
 
-export function buildFrameworkRunResult(options: BuildFrameworkRunOptions): FrameworkRunResult {
+export function buildBuilderRunResult(options: BuildBuilderRunOptions): BuilderRunResult {
   const cwd = options.cwd ?? process.cwd();
   return {
     timestamp: new Date().toISOString(),
@@ -102,7 +102,7 @@ export function buildFrameworkRunResult(options: BuildFrameworkRunOptions): Fram
 }
 
 /** Every run is saved under its own timestamped filename. Nothing here ever overwrites a prior file. */
-export function saveFrameworkRunResult(run: FrameworkRunResult, resultsDir: string): string {
+export function saveBuilderRunResult(run: BuilderRunResult, resultsDir: string): string {
   fs.mkdirSync(resultsDir, { recursive: true });
   const safeTimestamp = run.timestamp.replace(/[:.]/g, '-');
   const filePath = path.join(resultsDir, `${safeTimestamp}-${run.mode}.json`);
@@ -121,7 +121,7 @@ const APPROVED_BASELINE_FILENAME = 'approved-baseline.json';
  * explicitly confirmed they read the transcripts, enforcing blueprint rule "Approve a baseline
  * only after reading the outputs" at the mechanism level, not just as a written instruction.
  */
-export function approveFrameworkBaseline(run: FrameworkRunResult, resultsDir: string, confirmedRead: boolean): string {
+export function approveBuilderBaseline(run: BuilderRunResult, resultsDir: string, confirmedRead: boolean): string {
   if (!confirmedRead) {
     throw new Error(
       'Refusing to approve a baseline without confirmation that the outputs were read. ' +
@@ -134,7 +134,7 @@ export function approveFrameworkBaseline(run: FrameworkRunResult, resultsDir: st
   return filePath;
 }
 
-export function loadApprovedFrameworkBaseline(resultsDir: string): FrameworkRunResult | null {
+export function loadApprovedBuilderBaseline(resultsDir: string): BuilderRunResult | null {
   const filePath = path.join(resultsDir, APPROVED_BASELINE_FILENAME);
   if (!fs.existsSync(filePath)) return null;
   return JSON.parse(fs.readFileSync(filePath, 'utf-8'));

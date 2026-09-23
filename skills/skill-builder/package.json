@@ -1,0 +1,19 @@
+{
+  "name": "skill-builder",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsx scripts/build-skill-builder.ts",
+    "build:portable": "tsx scripts/build-skill-builder.ts --target=portable",
+    "validate": "tsx scripts/validate-skill-builder.ts",
+    "eval:smoke": "tsx evals/run-skill-builder-eval.ts --mode=smoke",
+    "eval:full": "tsx evals/run-skill-builder-eval.ts --mode=full",
+    "eval:compare": "tsx evals/run-skill-builder-eval.ts --mode=compare",
+    "eval:approve": "tsx evals/run-skill-builder-eval.ts --mode=approve",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@skills/framework": "workspace:*"
+  }
+}

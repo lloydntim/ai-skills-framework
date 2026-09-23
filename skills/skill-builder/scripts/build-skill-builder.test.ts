@@ -2,15 +2,15 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { buildFrameworkSkill } from './build-framework-skill';
+import { buildBuilderSkill } from './build-skill-builder';
 
 const REPO_TEMPLATE_PATH = path.join(__dirname, '..', 'SKILL.md');
-const REPO_BLUEPRINT_PATH = path.join(__dirname, '..', 'docs', 'skill-framework-blueprint.md');
+const REPO_BLUEPRINT_PATH = path.join(__dirname, '..', 'docs', 'skill-builder-blueprint.md');
 
 let tmpRoot: string;
 
 beforeEach(() => {
-  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-framework-build-'));
+  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-builder-build-'));
 });
 
 afterEach(() => {
@@ -23,10 +23,10 @@ function readFrontmatter(skillMd: string): string {
   return match[1];
 }
 
-describe('buildFrameworkSkill', () => {
+describe('buildBuilderSkill', () => {
   it('portable frontmatter contains only standard fields', () => {
     const out = path.join(tmpRoot, 'portable');
-    const result = buildFrameworkSkill({ target: 'portable', out });
+    const result = buildBuilderSkill({ target: 'portable', out });
 
     const frontmatter = readFrontmatter(fs.readFileSync(result.skillPath, 'utf-8'));
     const keys = frontmatter
@@ -40,7 +40,7 @@ describe('buildFrameworkSkill', () => {
 
   it('Claude Code output sets manual invocation', () => {
     const out = path.join(tmpRoot, 'claude-code');
-    const result = buildFrameworkSkill({ target: 'claude-code', out });
+    const result = buildBuilderSkill({ target: 'claude-code', out });
 
     const frontmatter = readFrontmatter(fs.readFileSync(result.skillPath, 'utf-8'));
     expect(frontmatter).toMatch(/^disable-model-invocation: true$/m);
@@ -49,16 +49,16 @@ describe('buildFrameworkSkill', () => {
   it('both outputs contain the exact source blueprint', () => {
     const sourceBlueprint = fs.readFileSync(REPO_BLUEPRINT_PATH, 'utf-8').trimEnd() + '\n';
 
-    const portable = buildFrameworkSkill({ target: 'portable', out: path.join(tmpRoot, 'portable') });
-    const claudeCode = buildFrameworkSkill({ target: 'claude-code', out: path.join(tmpRoot, 'claude-code') });
+    const portable = buildBuilderSkill({ target: 'portable', out: path.join(tmpRoot, 'portable') });
+    const claudeCode = buildBuilderSkill({ target: 'claude-code', out: path.join(tmpRoot, 'claude-code') });
 
     expect(fs.readFileSync(portable.referencePath, 'utf-8')).toBe(sourceBlueprint);
     expect(fs.readFileSync(claudeCode.referencePath, 'utf-8')).toBe(sourceBlueprint);
   });
 
   it('does not generate a separate command by default', () => {
-    const commandOut = path.join(tmpRoot, 'commands', 'skill-framework.md');
-    const result = buildFrameworkSkill({
+    const commandOut = path.join(tmpRoot, 'commands', 'skill-builder.md');
+    const result = buildBuilderSkill({
       target: 'claude-code',
       out: path.join(tmpRoot, 'claude-code'),
       commandOut,
@@ -69,8 +69,8 @@ describe('buildFrameworkSkill', () => {
   });
 
   it('generates the legacy command only when explicitly requested', () => {
-    const commandOut = path.join(tmpRoot, 'commands', 'skill-framework.md');
-    const result = buildFrameworkSkill({
+    const commandOut = path.join(tmpRoot, 'commands', 'skill-builder.md');
+    const result = buildBuilderSkill({
       target: 'claude-code',
       out: path.join(tmpRoot, 'claude-code'),
       legacyCommand: true,
@@ -79,15 +79,15 @@ describe('buildFrameworkSkill', () => {
 
     expect(result.commandPath).toBe(commandOut);
     expect(fs.existsSync(commandOut)).toBe(true);
-    expect(fs.readFileSync(commandOut, 'utf-8')).toContain('skill-framework');
+    expect(fs.readFileSync(commandOut, 'utf-8')).toContain('skill-builder');
   });
 
   it('reports an existing legacy command file as redundant without deleting it', () => {
-    const commandOut = path.join(tmpRoot, 'commands', 'skill-framework.md');
+    const commandOut = path.join(tmpRoot, 'commands', 'skill-builder.md');
     fs.mkdirSync(path.dirname(commandOut), { recursive: true });
     fs.writeFileSync(commandOut, 'pre-existing legacy command');
 
-    const result = buildFrameworkSkill({
+    const result = buildBuilderSkill({
       target: 'claude-code',
       out: path.join(tmpRoot, 'claude-code'),
       commandOut,
@@ -99,18 +99,18 @@ describe('buildFrameworkSkill', () => {
 
   it('rejects --legacy-command for the portable target', () => {
     expect(() =>
-      buildFrameworkSkill({
+      buildBuilderSkill({
         target: 'portable',
         out: path.join(tmpRoot, 'portable'),
         legacyCommand: true,
-        commandOut: path.join(tmpRoot, 'commands', 'skill-framework.md'),
+        commandOut: path.join(tmpRoot, 'commands', 'skill-builder.md'),
       })
     ).toThrow(/legacy slash command/);
   });
 
   it('honours a custom output directory', () => {
     const out = path.join(tmpRoot, 'custom', 'nested', 'dir');
-    const result = buildFrameworkSkill({ target: 'portable', out });
+    const result = buildBuilderSkill({ target: 'portable', out });
 
     expect(result.skillPath).toBe(path.join(out, 'SKILL.md'));
     expect(result.referencePath).toBe(path.join(out, 'reference', 'blueprint.md'));
@@ -120,7 +120,7 @@ describe('buildFrameworkSkill', () => {
 
   it('fails loudly when the blueprint is missing', () => {
     expect(() =>
-      buildFrameworkSkill({
+      buildBuilderSkill({
         out: path.join(tmpRoot, 'claude-code'),
         blueprintPath: path.join(tmpRoot, 'does-not-exist.md'),
       })
@@ -129,10 +129,10 @@ describe('buildFrameworkSkill', () => {
 
   it('fails loudly when the template is invalid', () => {
     const badTemplate = path.join(tmpRoot, 'bad-template.md');
-    fs.writeFileSync(badTemplate, '---\nname: skill-framework\n---\n\nNo blueprint pointer here.\n');
+    fs.writeFileSync(badTemplate, '---\nname: skill-builder\n---\n\nNo blueprint pointer here.\n');
 
     expect(() =>
-      buildFrameworkSkill({
+      buildBuilderSkill({
         out: path.join(tmpRoot, 'claude-code'),
         templatePath: badTemplate,
       })
@@ -143,11 +143,11 @@ describe('buildFrameworkSkill', () => {
     const badTemplate = path.join(tmpRoot, 'no-description.md');
     fs.writeFileSync(
       badTemplate,
-      '---\nname: skill-framework\n---\n\nSee reference/blueprint.md for the architecture.\n'
+      '---\nname: skill-builder\n---\n\nSee reference/blueprint.md for the architecture.\n'
     );
 
     expect(() =>
-      buildFrameworkSkill({
+      buildBuilderSkill({
         out: path.join(tmpRoot, 'claude-code'),
         templatePath: badTemplate,
       })
@@ -155,8 +155,8 @@ describe('buildFrameworkSkill', () => {
   });
 
   it('produces byte-identical output across repeated builds', () => {
-    const first = buildFrameworkSkill({ target: 'claude-code', out: path.join(tmpRoot, 'run1') });
-    const second = buildFrameworkSkill({ target: 'claude-code', out: path.join(tmpRoot, 'run2') });
+    const first = buildBuilderSkill({ target: 'claude-code', out: path.join(tmpRoot, 'run1') });
+    const second = buildBuilderSkill({ target: 'claude-code', out: path.join(tmpRoot, 'run2') });
 
     expect(fs.readFileSync(first.skillPath, 'utf-8')).toBe(fs.readFileSync(second.skillPath, 'utf-8'));
     expect(fs.readFileSync(first.referencePath, 'utf-8')).toBe(

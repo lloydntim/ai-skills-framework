@@ -1,7 +1,7 @@
 # How skills are built here
 
 This repository holds several skills. Every skill is laid out the same way, so if you know one, you
-can find things in any other. One of them, `skill-framework`, is the skill used to create and change
+can find things in any other. One of them, `skill-builder`, is the skill used to create and change
 the others (see "Add a skill"). This page explains the layout, the flow of a request, how quality is
 measured, how versions are tracked, and how to add or export a skill.
 
@@ -212,7 +212,7 @@ Nothing in this repository's skills passes one today.
 
 ### Where this is not configuration
 
-`skill-framework`'s eval has one role, `advisor`, which is not a `ModelRole`. It carries its own
+`skill-builder`'s eval has one role, `advisor`, which is not a `ModelRole`. It carries its own
 default but is configured from the same two fields on `evals/config/models.json` and validated by
 the same parser.
 
@@ -254,7 +254,7 @@ on the private path or silently reporting its hash while public cases ran. The c
 recorded on the dataset's version entry (`"declared"` or `"fallback"`), so two runs of the same
 named dataset can never look like the same measurement when one ran against private cases and the
 other against the public fallback; `regression-compatibility.ts` treats a source mismatch as
-`INCOMPATIBLE`. A dataset with no `publicDir` (cv-translator's, skill-framework's) is unaffected:
+`INCOMPATIBLE`. A dataset with no `publicDir` (cv-translator's, skill-builder's) is unaffected:
 its `dir` is the only copy, and a missing one is still a real, reported problem.
 
 ## What each model call sees
@@ -266,8 +266,8 @@ skill's README under "What each call sees" (Cover Letter Writer has the worked e
 the answers that apply to that skill, each next to the test that checks it. They are not in
 `skill.json` or `SKILL.md`: nothing reads them at run time, and the model does not need them. The
 code that builds each prompt is their working form. The questions, the rules and the checks are in
-the blueprint, section 7.15 (`skills/skill-framework/docs/skill-framework-blueprint.md`); the
-`skill-framework` skill works through them whenever it creates or changes a skill.
+the blueprint, section 7.15 (`skills/skill-builder/docs/skill-builder-blueprint.md`); the
+`skill-builder` skill works through them whenever it creates or changes a skill.
 
 Reading a reference file on demand, subagents, prompt caching and a host's memory are ways a host or
 provider can meet a requirement. They belong in an adapter or a provider adapter, never in the
@@ -312,9 +312,9 @@ Fake providers are in `framework/testing/`.
 
 ## Add a skill
 
-Use the `skill-framework` skill (`skills/skill-framework/`) for this. It holds the blueprint the
+Use the `skill-builder` skill (`skills/skill-builder/`) for this. It holds the blueprint the
 steps below come from, and it asks the questions a new skill should answer before it is built. Build
-it into Claude Code with `pnpm --filter skill-framework build`.
+it into Claude Code with `pnpm --filter skill-builder build`.
 
 1. Copy an existing skill folder to `skills/<new-name>/` and clear out what is specific to the old one.
 2. Write `SKILL.md` and `README.md`. Anything about one real person goes in the skill's `reference/`

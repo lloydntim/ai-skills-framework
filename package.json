@@ -6,7 +6,7 @@
     "test": "pnpm test:scripts && pnpm -r --workspace-concurrency=1 test",
     "typecheck": "pnpm -r typecheck",
     "export-skill": "tsx scripts/export-skill.ts",
-    "framework:validate": "pnpm --filter skill-framework validate",
+    "skill-builder:validate": "pnpm --filter skill-builder validate",
     "test:scripts": "vitest run scripts"
   },
   "dependencies": {

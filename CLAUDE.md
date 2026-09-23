@@ -1,7 +1,7 @@
 # Working in this repository
 
 - Read `docs/ARCHITECTURE.md` first. It describes the layout every skill follows.
-- To create or change a skill, use the `skill-framework` skill (`skills/skill-framework/`). Its
+- To create or change a skill, use the `skill-builder` skill (`skills/skill-builder/`). Its
   blueprint covers what each model call should see (section 7.15); record those decisions in the
   skill's README as its context requirements, each with the test that checks it.
 - **Nothing tracked here holds a real person's details.** Not `SKILL.md`, source, prompts, test
@@ -15,4 +15,4 @@
   `COVER_LETTER_TEMPLATE`, pointing outside the repository. Do not edit a tracked file to hold them.
 - `pnpm test` never calls a model. Commands that do are marked as paid in each skill's README; do
   not run them without asking.
-- Before committing: `pnpm test`, `pnpm typecheck`, `pnpm framework:validate`.
+- Before committing: `pnpm test`, `pnpm typecheck`, `pnpm skill-builder:validate`.

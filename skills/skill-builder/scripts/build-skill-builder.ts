@@ -4,10 +4,10 @@ import path from 'node:path';
 import { parseArgs } from '@skills/framework/cli-args';
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'SKILL.md');
-const BLUEPRINT_PATH = path.join(__dirname, '..', 'docs', 'skill-framework-blueprint.md');
-const DEFAULT_CLAUDE_CODE_OUT = path.join(os.homedir(), '.claude', 'skills', 'skill-framework');
-const DEFAULT_PORTABLE_OUT = path.join(__dirname, '..', 'dist', 'skill-framework-portable');
-const DEFAULT_COMMAND_OUT = path.join(os.homedir(), '.claude', 'commands', 'skill-framework.md');
+const BLUEPRINT_PATH = path.join(__dirname, '..', 'docs', 'skill-builder-blueprint.md');
+const DEFAULT_CLAUDE_CODE_OUT = path.join(os.homedir(), '.claude', 'skills', 'skill-builder');
+const DEFAULT_PORTABLE_OUT = path.join(__dirname, '..', 'dist', 'skill-builder-portable');
+const DEFAULT_COMMAND_OUT = path.join(os.homedir(), '.claude', 'commands', 'skill-builder.md');
 
 // The blueprint is the single source of truth (its own rule 4.1) — it is copied verbatim into
 // every build target at build time rather than rewritten there, so no target can drift from it.
@@ -20,11 +20,11 @@ const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n/;
 // invokes installed skills directly via "/<skill-name>", so this is legacy-only support kept for
 // anyone still relying on the old mechanism.
 const LEGACY_SLASH_COMMAND = `---
-description: Structure, evaluate or restructure a model skill using the skill-framework blueprint
+description: Structure, evaluate or restructure a model skill using the skill-builder blueprint
 argument-hint: e.g. "restructure the skill in ./my-skill" or "add tests to this skill"
 ---
 
-Use the \`skill-framework\` skill to handle the following request. Read its
+Use the \`skill-builder\` skill to handle the following request. Read its
 \`reference/blueprint.md\` first and follow both files exactly.
 
 $ARGUMENTS
@@ -32,7 +32,7 @@ $ARGUMENTS
 
 export type BuildTarget = 'claude-code' | 'portable';
 
-export interface BuildFrameworkSkillOptions {
+export interface BuildBuilderSkillOptions {
   target?: BuildTarget;
   out?: string;
   legacyCommand?: boolean;
@@ -41,7 +41,7 @@ export interface BuildFrameworkSkillOptions {
   blueprintPath?: string;
 }
 
-export interface BuildFrameworkSkillResult {
+export interface BuildBuilderSkillResult {
   target: BuildTarget;
   skillPath: string;
   referencePath: string;
@@ -88,9 +88,9 @@ function withClaudeCodeFrontmatter(template: string): string {
   return match[0] === updated ? template : template.replace(match[0], updated);
 }
 
-export function buildFrameworkSkill(
-  options: BuildFrameworkSkillOptions = {}
-): BuildFrameworkSkillResult {
+export function buildBuilderSkill(
+  options: BuildBuilderSkillOptions = {}
+): BuildBuilderSkillResult {
   const target: BuildTarget = options.target ?? 'claude-code';
   const templatePath = options.templatePath ?? TEMPLATE_PATH;
   const blueprintPath = options.blueprintPath ?? BLUEPRINT_PATH;
@@ -118,7 +118,7 @@ export function buildFrameworkSkill(
   fs.writeFileSync(skillPath, template.trimEnd() + '\n');
   fs.writeFileSync(referencePath, blueprint.trimEnd() + '\n');
 
-  const result: BuildFrameworkSkillResult = { target, skillPath, referencePath };
+  const result: BuildBuilderSkillResult = { target, skillPath, referencePath };
 
   const commandOut = options.commandOut ?? DEFAULT_COMMAND_OUT;
 
@@ -143,7 +143,7 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const target: BuildTarget = args.target === 'portable' ? 'portable' : 'claude-code';
 
-  const result = buildFrameworkSkill({
+  const result = buildBuilderSkill({
     target,
     out: args.out,
     legacyCommand: args['legacy-command'] === 'true',
@@ -158,7 +158,7 @@ function main() {
   } else if (result.legacyCommandFound) {
     console.log(
       `Note: a legacy command file exists at ${result.legacyCommandFound}. Claude Code invokes ` +
-        `this skill directly via "/skill-framework" now, so this file is redundant. It was left ` +
+        `this skill directly via "/skill-builder" now, so this file is redundant. It was left ` +
         `in place — remove it by hand if you no longer need it.`
     );
   }

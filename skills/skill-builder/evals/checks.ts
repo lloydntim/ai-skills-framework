@@ -1,6 +1,6 @@
 /**
  * Deterministic, mechanical checks over one transcript (the free text a model produced while
- * following, or not following, the skill-framework skill). No model call, no opinion: every check
+ * following, or not following, the skill-builder skill). No model call, no opinion: every check
  * here is a regex or substring test, per blueprint section 9 ("Testing a workflow skill"): measure
  * observable invariants, not prose quality, for a skill whose job is guiding a conversation rather
  * than producing scored prose.

@@ -2,14 +2,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { validateFrameworkSkill } from './validate-framework-skill';
+import { validateBuilderSkill } from './validate-skill-builder';
 
 const REAL_REPO_ROOT = path.join(__dirname, '..');
 
 let tmpRoot: string;
 
 function writeFixtureRepo(overrides: { template?: string; blueprint?: string } = {}): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-framework-validate-fixture-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-builder-validate-fixture-'));
   fs.mkdirSync(path.join(root, 'skill'), { recursive: true });
   fs.mkdirSync(path.join(root, 'docs'), { recursive: true });
 
@@ -17,11 +17,11 @@ function writeFixtureRepo(overrides: { template?: string; blueprint?: string } =
     overrides.template ??
     [
       '---',
-      'name: skill-framework',
+      'name: skill-builder',
       'description: A test skill framework template.',
       '---',
       '',
-      '# Skill Framework',
+      '# Skill Builder',
       '',
       'See `reference/blueprint.md` for the architecture, and its section 7.15 for what a skill loads.',
       '',
@@ -29,35 +29,35 @@ function writeFixtureRepo(overrides: { template?: string; blueprint?: string } =
 
   const blueprint =
     overrides.blueprint ??
-    ['# Skill Framework Blueprint', '', 'A minimal blueprint used for testing validation.', '', '### 7.15 Decide what each call sees', ''].join('\n');
+    ['# Skill Builder Blueprint', '', 'A minimal blueprint used for testing validation.', '', '### 7.15 Decide what each call sees', ''].join('\n');
 
   fs.writeFileSync(path.join(root, 'SKILL.md'), template);
-  fs.writeFileSync(path.join(root, 'docs', 'skill-framework-blueprint.md'), blueprint);
+  fs.writeFileSync(path.join(root, 'docs', 'skill-builder-blueprint.md'), blueprint);
 
   return root;
 }
 
 beforeEach(() => {
-  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-framework-validate-'));
+  tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-builder-validate-'));
 });
 
 afterEach(() => {
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 });
 
-describe('validateFrameworkSkill against the real repo', () => {
+describe('validateBuilderSkill against the real repo', () => {
   it('reports zero issues for the checked-in source', () => {
-    const issues = validateFrameworkSkill({ repoRoot: REAL_REPO_ROOT });
+    const issues = validateBuilderSkill({ repoRoot: REAL_REPO_ROOT });
     expect(issues).toEqual([]);
   });
 });
 
-describe('validateFrameworkSkill catches each seeded failure', () => {
+describe('validateBuilderSkill catches each seeded failure', () => {
   it('flags a portable frontmatter field outside the open Agent Skills spec', () => {
     const root = writeFixtureRepo({
       template: [
         '---',
-        'name: skill-framework',
+        'name: skill-builder',
         'description: A test template.',
         'disable-model-invocation: true',
         '---',
@@ -67,21 +67,21 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
       ].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root });
+    const issues = validateBuilderSkill({ repoRoot: root });
     expect(issues.some((i) => i.rule === 'portable-frontmatter')).toBe(true);
     expect(issues.some((i) => i.rule === 'no-accidental-provider-requirement')).toBe(true);
   });
 
   it('flags a template that never points at the blueprint reference', () => {
     const root = writeFixtureRepo({
-      template: ['---', 'name: skill-framework', 'description: A test template.', '---', '', 'No pointer here.', ''].join(
+      template: ['---', 'name: skill-builder', 'description: A test template.', '---', '', 'No pointer here.', ''].join(
         '\n'
       ),
     });
 
-    // The build itself refuses this template (build-framework-skill.ts's own guard), so validation
+    // The build itself refuses this template (build-skill-builder.ts's own guard), so validation
     // must surface that failure rather than crash.
-    const issues = validateFrameworkSkill({ repoRoot: root });
+    const issues = validateBuilderSkill({ repoRoot: root });
     expect(issues.some((i) => i.rule === 'build-succeeds')).toBe(true);
   });
 
@@ -89,7 +89,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
     const root = writeFixtureRepo({
       template: [
         '---',
-        'name: skill-framework',
+        'name: skill-builder',
         'description: A test template.',
         '---',
         '',
@@ -100,7 +100,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
       ].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root });
+    const issues = validateBuilderSkill({ repoRoot: root });
     expect(issues.some((i) => i.rule === 'no-unfinished-placeholders')).toBe(true);
   });
 
@@ -108,7 +108,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
     const root = writeFixtureRepo({
       template: [
         '---',
-        'name: skill-framework',
+        'name: skill-builder',
         'description: A test template.',
         '---',
         '',
@@ -117,7 +117,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
       ].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root });
+    const issues = validateBuilderSkill({ repoRoot: root });
     expect(issues.some((i) => i.rule === 'no-broken-relative-references')).toBe(true);
   });
 
@@ -125,7 +125,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
     const root = writeFixtureRepo({
       template: [
         '---',
-        'name: skill-framework',
+        'name: skill-builder',
         'description: A test template.',
         '---',
         '',
@@ -134,7 +134,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
       ].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root });
+    const issues = validateBuilderSkill({ repoRoot: root });
     expect(issues.some((i) => i.rule === 'no-superpowers-dependency')).toBe(true);
   });
 
@@ -142,7 +142,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
     const root = writeFixtureRepo({
       template: [
         '---',
-        'name: skill-framework',
+        'name: skill-builder',
         'description: A test template.',
         '---',
         '',
@@ -153,7 +153,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
       ].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root });
+    const issues = validateBuilderSkill({ repoRoot: root });
     expect(issues.some((i) => i.rule === 'no-obsolete-slash-command-requirement')).toBe(true);
   });
 
@@ -162,10 +162,10 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
       'This exact sentence is long enough to count as a duplicated architecture rule once it is ' +
       'copy-pasted somewhere it should only be referenced from instead of repeated in full.';
     const root = writeFixtureRepo({
-      blueprint: ['# Skill Framework Blueprint', '', longParagraph, ''].join('\n'),
+      blueprint: ['# Skill Builder Blueprint', '', longParagraph, ''].join('\n'),
       template: [
         '---',
-        'name: skill-framework',
+        'name: skill-builder',
         'description: A test template.',
         '---',
         '',
@@ -176,7 +176,7 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
       ].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root });
+    const issues = validateBuilderSkill({ repoRoot: root });
     expect(issues.some((i) => i.rule === 'no-duplicated-rules')).toBe(true);
   });
 
@@ -186,33 +186,33 @@ describe('validateFrameworkSkill catches each seeded failure', () => {
     fs.mkdirSync(path.join(root, 'scripts'), { recursive: true });
     fs.writeFileSync(path.join(root, 'scripts', 'new-thing.ts'), `const x = 'a ${emDash} b';\n`);
 
-    const issues = validateFrameworkSkill({ repoRoot: root, newContentFiles: ['scripts/new-thing.ts'] });
+    const issues = validateBuilderSkill({ repoRoot: root, newContentFiles: ['scripts/new-thing.ts'] });
     expect(issues.some((i) => i.rule === 'no-em-dashes')).toBe(true);
   });
 
   it('does not flag an em dash in a file not named as new content', () => {
     const emDash = String.fromCharCode(0x2014);
     const root = writeFixtureRepo({
-      blueprint: ['# Skill Framework Blueprint', '', `Some prose with an em dash ${emDash} kept as-is.`, ''].join('\n'),
+      blueprint: ['# Skill Builder Blueprint', '', `Some prose with an em dash ${emDash} kept as-is.`, ''].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root, newContentFiles: [] });
+    const issues = validateBuilderSkill({ repoRoot: root, newContentFiles: [] });
     expect(issues.some((i) => i.rule === 'no-em-dashes')).toBe(false);
   });
 
   it('flags instructions that stop pointing at the context section, or a blueprint without it', () => {
     const root = writeFixtureRepo({
-      template: ['---', 'name: skill-framework', 'description: A test template.', '---', '', 'See `reference/blueprint.md`.', ''].join('\n'),
-      blueprint: ['# Skill Framework Blueprint', '', 'No context section.', ''].join('\n'),
+      template: ['---', 'name: skill-builder', 'description: A test template.', '---', '', 'See `reference/blueprint.md`.', ''].join('\n'),
+      blueprint: ['# Skill Builder Blueprint', '', 'No context section.', ''].join('\n'),
     });
 
-    const issues = validateFrameworkSkill({ repoRoot: root, newContentFiles: [] });
+    const issues = validateBuilderSkill({ repoRoot: root, newContentFiles: [] });
     expect(issues.filter((i) => i.rule === 'context-guidance-reachable')).toHaveLength(2);
   });
 
   it('passes a well-formed minimal fixture repo cleanly', () => {
     const root = writeFixtureRepo();
-    const issues = validateFrameworkSkill({ repoRoot: root, newContentFiles: [] });
+    const issues = validateBuilderSkill({ repoRoot: root, newContentFiles: [] });
     expect(issues).toEqual([]);
   });
 });

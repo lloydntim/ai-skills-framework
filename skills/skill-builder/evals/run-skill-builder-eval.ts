@@ -6,17 +6,17 @@ import type { ModelProvider } from '@skills/framework/provider/types';
 import { AnthropicProvider } from '@skills/framework/provider/anthropic-provider';
 import { parseRoleRuntime, type RoleRuntimeConfig } from '@skills/framework/provider/role-runtime';
 import { CHECKS, doesNotApproveUnreadBaseline } from './checks';
-import { FRAMEWORK_CASES, type FrameworkCase } from './cases';
-import { buildSystemPrompt, type FrameworkVariant } from './variants';
+import { BUILDER_CASES, type BuilderCase } from './cases';
+import { buildSystemPrompt, type BuilderVariant } from './variants';
 import {
-  approveFrameworkBaseline,
-  buildFrameworkRunResult,
-  saveFrameworkRunResult,
-  type FrameworkCaseResult,
-  type FrameworkRunResult,
+  approveBuilderBaseline,
+  buildBuilderRunResult,
+  saveBuilderRunResult,
+  type BuilderCaseResult,
+  type BuilderRunResult,
 } from './reporter';
 
-export type FrameworkEvalMode = 'smoke' | 'full' | 'compare' | 'approve';
+export type BuilderEvalMode = 'smoke' | 'full' | 'compare' | 'approve';
 
 const DEFAULT_MODEL = 'claude-sonnet-5';
 const DEFAULT_MODELS_CONFIG_PATH = path.join(__dirname, 'config', 'models.json');
@@ -39,26 +39,26 @@ export const DEFAULT_ADVISOR_RUNTIME: RoleRuntimeConfig = { reasoning: 'high', m
 // response at all, not to re-run the whole suite.
 const SMOKE_CASE_IDS = ['new-low-risk-skill', 'mature-high-risk-text-skill'];
 
-export interface RunFrameworkEvalOptions {
-  mode: FrameworkEvalMode;
+export interface RunBuilderEvalOptions {
+  mode: BuilderEvalMode;
   provider: ModelProvider;
   providerName: string;
   model: string;
-  cases?: FrameworkCase[];
+  cases?: BuilderCase[];
   /** How the advisor role is run. Defaults to DEFAULT_ADVISOR_RUNTIME. */
   runtime?: RoleRuntimeConfig;
   /** Which variants to run. Defaults: smoke -> B only; full/compare/approve -> A and B. */
-  variants?: FrameworkVariant[];
+  variants?: BuilderVariant[];
 }
 
 function runOneCase(
-  kase: FrameworkCase,
-  variant: FrameworkVariant,
+  kase: BuilderCase,
+  variant: BuilderVariant,
   provider: ModelProvider,
   model: string,
   runtime: RoleRuntimeConfig
 ) {
-  return (async (): Promise<FrameworkCaseResult> => {
+  return (async (): Promise<BuilderCaseResult> => {
     const fixture = kase.setup();
     try {
       const systemPrompt = buildSystemPrompt(variant);
@@ -95,14 +95,14 @@ function runOneCase(
   })();
 }
 
-export async function runFrameworkEval(options: RunFrameworkEvalOptions): Promise<FrameworkRunResult> {
-  const allCases = options.cases ?? FRAMEWORK_CASES;
+export async function runBuilderEval(options: RunBuilderEvalOptions): Promise<BuilderRunResult> {
+  const allCases = options.cases ?? BUILDER_CASES;
   const cases = options.mode === 'smoke' ? allCases.filter((c) => SMOKE_CASE_IDS.includes(c.id)) : allCases;
-  const variants: FrameworkVariant[] = options.variants ?? (options.mode === 'smoke' ? ['B'] : ['A', 'B']);
+  const variants: BuilderVariant[] = options.variants ?? (options.mode === 'smoke' ? ['B'] : ['A', 'B']);
 
   const runtime = options.runtime ?? DEFAULT_ADVISOR_RUNTIME;
 
-  const results: FrameworkCaseResult[] = [];
+  const results: BuilderCaseResult[] = [];
   for (const kase of cases) {
     for (const variant of variants) {
       results.push(await runOneCase(kase, variant, options.provider, options.model, runtime));
@@ -112,7 +112,7 @@ export async function runFrameworkEval(options: RunFrameworkEvalOptions): Promis
   const skillContent = buildSystemPrompt('B');
   const casesSnapshot = allCases.map((c) => ({ id: c.id, description: c.description, expectedChecks: c.expectedChecks }));
 
-  return buildFrameworkRunResult({
+  return buildBuilderRunResult({
     mode: options.mode,
     provider: options.providerName,
     model: options.model,
@@ -125,8 +125,8 @@ export async function runFrameworkEval(options: RunFrameworkEvalOptions): Promis
   });
 }
 
-function printReport(run: FrameworkRunResult, printTranscripts: boolean) {
-  console.log(`\nSkill Framework eval (${run.mode}), ${run.timestamp}`);
+function printReport(run: BuilderRunResult, printTranscripts: boolean) {
+  console.log(`\nSkill Builder eval (${run.mode}), ${run.timestamp}`);
   console.log(`Model: ${run.provider}/${run.model}  Git: ${run.gitCommit ?? 'unknown'}${run.gitDirty ? ' (dirty)' : ''}`);
   console.log(
     `Overall: ${run.summary.passed}/${run.summary.total} passed  ` +
@@ -152,11 +152,11 @@ interface AdvisorRoleConfig {
 
 function loadAdvisorConfig(configPath: string): AdvisorRoleConfig {
   if (!fs.existsSync(configPath)) {
-    throw new Error(`Framework eval model config not found at ${configPath}`);
+    throw new Error(`Builder eval model config not found at ${configPath}`);
   }
   const raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
   if (!raw?.advisor?.provider || !raw?.advisor?.model) {
-    throw new Error(`Framework eval model config at ${configPath} must define an "advisor" role with provider and model.`);
+    throw new Error(`Builder eval model config at ${configPath} must define an "advisor" role with provider and model.`);
   }
   // Same validation the framework's own roles get, so a bad reasoning value in this file fails
   // here rather than on the first paid call.
@@ -165,7 +165,7 @@ function loadAdvisorConfig(configPath: string): AdvisorRoleConfig {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const mode = (args.mode ?? 'smoke') as FrameworkEvalMode;
+  const mode = (args.mode ?? 'smoke') as BuilderEvalMode;
   const modelsConfigPath = args['models-config'] ?? DEFAULT_MODELS_CONFIG_PATH;
   const modelsConfig = loadAdvisorConfig(modelsConfigPath);
   const model = args.model ?? modelsConfig.advisor.model ?? DEFAULT_MODEL;
@@ -175,12 +175,12 @@ async function main() {
   }
 
   // Filter cases by --cases=id1,id2 if supplied.
-  let cases: FrameworkCase[] | undefined;
+  let cases: BuilderCase[] | undefined;
   if (args.cases) {
     const selectedIds = (args.cases as string).split(',').map((s) => s.trim());
-    cases = FRAMEWORK_CASES.filter((c) => selectedIds.includes(c.id));
+    cases = BUILDER_CASES.filter((c) => selectedIds.includes(c.id));
     if (cases.length === 0) {
-      throw new Error(`No cases matched --cases=${args.cases}. Available: ${FRAMEWORK_CASES.map((c) => c.id).join(', ')}`);
+      throw new Error(`No cases matched --cases=${args.cases}. Available: ${BUILDER_CASES.map((c) => c.id).join(', ')}`);
     }
   }
 
@@ -188,7 +188,7 @@ async function main() {
   // `npm test`; only by an explicit `npm run framework:eval:*`.
   const provider = new AnthropicProvider();
 
-  const run = await runFrameworkEval({
+  const run = await runBuilderEval({
     mode,
     provider,
     providerName: 'anthropic',
@@ -201,10 +201,10 @@ async function main() {
 
   if (mode === 'approve') {
     const confirmedRead = args['confirm-read'] === 'true';
-    const filePath = approveFrameworkBaseline(run, RESULTS_DIR, confirmedRead);
+    const filePath = approveBuilderBaseline(run, RESULTS_DIR, confirmedRead);
     console.log(`\nApproved baseline written to ${filePath}`);
   } else {
-    const filePath = saveFrameworkRunResult(run, RESULTS_DIR);
+    const filePath = saveBuilderRunResult(run, RESULTS_DIR);
     console.log(`\nRun saved to ${filePath}`);
   }
 

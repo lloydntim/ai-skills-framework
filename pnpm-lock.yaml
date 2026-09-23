@@ -203,7 +203,7 @@ importers:
         specifier: workspace:*
         version: link:../../framework
 
-  skills/skill-framework:
+  skills/skill-builder:
     dependencies:
       '@skills/framework':
         specifier: workspace:*

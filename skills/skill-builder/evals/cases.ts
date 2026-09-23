@@ -4,8 +4,8 @@ import path from 'node:path';
 import type { AdoptionBand, CheckName } from './checks';
 
 /**
- * The behavioral scenarios required for the skill-framework skill itself. Each case is a
- * request a user might make of the skill-framework skill, plus the deterministic checks its
+ * The behavioral scenarios required for the skill-builder skill itself. Each case is a
+ * request a user might make of the skill-builder skill, plus the deterministic checks its
  * response must satisfy (blueprint section 9: measure observable invariants for a workflow skill,
  * not prose quality).
  *
@@ -22,7 +22,7 @@ export interface CaseCheck {
   arg?: unknown;
 }
 
-export interface FrameworkCase {
+export interface BuilderCase {
   id: string;
   description: string;
   /** Builds an isolated fixture and returns the request text plus a cleanup function. */
@@ -31,7 +31,7 @@ export interface FrameworkCase {
 }
 
 function tmpFixture(prefix: string): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), `skill-framework-eval-${prefix}-`));
+  return fs.mkdtempSync(path.join(os.tmpdir(), `skill-builder-eval-${prefix}-`));
 }
 
 function noFixtureNeeded(requestText: string): { requestText: string; fixtureDir: string; cleanup(): void } {
@@ -39,7 +39,7 @@ function noFixtureNeeded(requestText: string): { requestText: string; fixtureDir
   return { requestText, fixtureDir: dir, cleanup: () => fs.rmSync(dir, { recursive: true, force: true }) };
 }
 
-export const FRAMEWORK_CASES: FrameworkCase[] = [
+export const BUILDER_CASES: BuilderCase[] = [
   {
     id: 'new-low-risk-skill',
     description: 'A new, low-risk skill where steps 1-2 are sufficient.',
