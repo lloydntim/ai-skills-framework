@@ -49,7 +49,6 @@ export async function validateDraft(
     userPrompt: prompt,
     model,
     temperature: 0,
-    maxOutputTokens: 4000,
     metadata: { requestType, components },
   });
 

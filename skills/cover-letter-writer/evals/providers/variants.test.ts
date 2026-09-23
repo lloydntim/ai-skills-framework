@@ -31,7 +31,6 @@ const FAILING_JUDGE_JSON = judgeJson({ factualGrounding: 1 });
 
 const config: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 5,
   thresholds: {
     factualGrounding: 5,

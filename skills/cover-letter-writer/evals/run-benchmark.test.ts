@@ -56,7 +56,6 @@ const PASSING_EVALUATOR_JSON = judgeJson();
 
 const runtimeConfig: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 2,
   thresholds: {
     factualGrounding: 5,

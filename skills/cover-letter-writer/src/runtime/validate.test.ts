@@ -8,7 +8,6 @@ const MODEL = 'fake-model';
 
 const config: RuntimeConfig = {
   temperature: 0,
-  maxOutputTokens: 2000,
   maxRevisionAttempts: 3,
   thresholds: {
     factualGrounding: 5,

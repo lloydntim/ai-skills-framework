@@ -8,7 +8,6 @@ import type { EvalCase } from './types';
 
 const config: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 5,
   maxLengthRatio: 100,
   forbiddenCharacters: ['—', '–'],

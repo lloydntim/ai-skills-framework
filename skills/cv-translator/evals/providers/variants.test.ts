@@ -30,7 +30,6 @@ const FAILING_VALIDATION_JSON = validationJson({ faithfulness: 1 });
 
 const config: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 5,
   maxLengthRatio: 100, // generous: these tests are about the pipeline, not length checks
   forbiddenCharacters: ['—', '–'],

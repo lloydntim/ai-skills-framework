@@ -8,7 +8,6 @@ const MODEL = 'fake-model';
 
 const config: RuntimeConfig = {
   temperature: 0,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 5,
   maxLengthRatio: 100, // generous: these tests are about the judge's JSON, not length checks
   forbiddenCharacters: ['—', '–'],

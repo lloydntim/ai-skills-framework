@@ -109,7 +109,6 @@ describe.skipIf(referenceLeftOutByExport)("the candidate's profile", () => {
 describe('taking the profile at run time', () => {
   const config: RuntimeConfig = {
     temperature: 0.3,
-    maxOutputTokens: 4000,
     maxRevisionAttempts: 0,
     thresholds: { factualGrounding: 1, jobRelevance: 1, professionalTone: 1, specificity: 1, naturalness: 1, overall: 1 },
   };

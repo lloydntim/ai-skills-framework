@@ -1,7 +1,7 @@
 {
-  "generator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "validator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "reviser": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "evaluator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "pairwiseJudge": { "provider": "anthropic", "model": "claude-sonnet-5" }
+  "generator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "high", "maxOutputTokens": 16000 },
+  "validator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "reviser": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "high", "maxOutputTokens": 16000 },
+  "evaluator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "pairwiseJudge": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 }
 }

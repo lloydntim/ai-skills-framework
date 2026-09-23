@@ -36,7 +36,6 @@ const LOW_RELEVANCE_JUDGE_JSON = judgeJson({ jobRelevance: 2 });
 
 const config: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 3,
   thresholds: {
     factualGrounding: 5,

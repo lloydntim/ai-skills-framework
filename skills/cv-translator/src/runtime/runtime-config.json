@@ -1,6 +1,5 @@
 {
   "temperature": 0.3,
-  "maxOutputTokens": 4000,
   "maxRevisionAttempts": 5,
   "maxLengthRatio": 1.15,
   "forbiddenCharacters": ["—", "–"],

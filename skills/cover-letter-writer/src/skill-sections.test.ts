@@ -91,7 +91,6 @@ describe('what the model is shown still lets it meet the checks', () => {
 
 const config: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 1,
   thresholds: { factualGrounding: 5, jobRelevance: 4, professionalTone: 4, specificity: 4, naturalness: 4, overall: 4 },
 };

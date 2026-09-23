@@ -1,7 +1,7 @@
 {
-  "generator": { "provider": "anthropic", "model": "claude-haiku-4-5-20251001" },
-  "validator": { "provider": "anthropic", "model": "claude-haiku-4-5-20251001" },
-  "reviser": { "provider": "anthropic", "model": "claude-haiku-4-5-20251001" },
-  "evaluator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "pairwiseJudge": { "provider": "anthropic", "model": "claude-sonnet-5" }
+  "generator": { "provider": "anthropic", "model": "claude-haiku-4-5-20251001", "reasoning": "high", "maxOutputTokens": 16000 },
+  "validator": { "provider": "anthropic", "model": "claude-haiku-4-5-20251001", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "reviser": { "provider": "anthropic", "model": "claude-haiku-4-5-20251001", "reasoning": "high", "maxOutputTokens": 16000 },
+  "evaluator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "pairwiseJudge": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 }
 }

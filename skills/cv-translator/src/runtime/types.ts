@@ -21,13 +21,14 @@ export interface RuntimeThresholds {
 }
 
 /**
- * Model/provider selection was moved out of this config and into per-role configuration (see
- * ../provider/model-roles.ts, config/models.json) — generate/validate/revise are now told which
- * model to use by their caller rather than all sharing one `model` field here.
+ * Model/provider selection lives in per-role configuration (config/models.json), not here — this
+ * only holds the knobs that are about the run itself. That now includes the output-token budget and
+ * how hard each role thinks: both are properties of the role and its model, both have to be decided
+ * together (reasoning is spent out of the same budget as the answer), and both are read from
+ * config/models.json by the framework. See docs/ARCHITECTURE.md, "Runtime configuration".
  */
 export interface RuntimeConfig {
   temperature: number;
-  maxOutputTokens: number;
   maxRevisionAttempts: number;
   maxLengthRatio: number;
   forbiddenCharacters: string[];

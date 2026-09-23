@@ -38,7 +38,6 @@ export async function evaluateQuality(
     userPrompt: prompt,
     model: config.model,
     temperature: config.temperature,
-    maxOutputTokens: 4000,
     metadata: { requestType: 'evaluator', components },
   });
 

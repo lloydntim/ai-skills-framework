@@ -50,7 +50,6 @@ export async function reviseDraft(
     userPrompt: revisionPrompt,
     model,
     temperature: config.temperature,
-    maxOutputTokens: config.maxOutputTokens,
     metadata: { requestType: 'revision', components },
   });
 }

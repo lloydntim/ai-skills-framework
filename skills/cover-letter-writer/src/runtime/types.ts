@@ -48,12 +48,14 @@ export type SemanticDimension = keyof SemanticValidationScores;
 export interface RuntimeThresholds extends Record<SemanticDimension, number> {}
 
 /**
- * Model/provider selection lives in per-role configuration (../provider/model-roles.ts,
- * config/models.json), not here — this only holds the knobs that are about the run itself.
+ * Model/provider selection lives in per-role configuration (config/models.json), not here — this
+ * only holds the knobs that are about the run itself. That now includes the output-token budget and
+ * how hard each role thinks: both are properties of the role and its model, both have to be decided
+ * together (reasoning is spent out of the same budget as the answer), and both are read from
+ * config/models.json by the framework. See docs/ARCHITECTURE.md, "Runtime configuration".
  */
 export interface RuntimeConfig {
   temperature: number;
-  maxOutputTokens: number;
   /** Hard cap on bounded, targeted revision attempts. Revision stops here even if still failing. */
   maxRevisionAttempts: number;
   thresholds: RuntimeThresholds;

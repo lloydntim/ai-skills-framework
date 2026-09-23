@@ -1,7 +1,6 @@
 {
   "temperature": 0.3,
   "evaluatorTemperature": 0,
-  "maxOutputTokens": 4000,
   "defaultVariants": ["A", "B"],
   "maxLengthRatio": 1.15,
   "forbiddenCharacters": ["—", "–"],

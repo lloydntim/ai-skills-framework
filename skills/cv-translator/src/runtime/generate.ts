@@ -45,7 +45,6 @@ export async function generateDraft(
     userPrompt: buildUserPrompt(input),
     model,
     temperature: config.temperature,
-    maxOutputTokens: config.maxOutputTokens,
     metadata: { requestType: 'initial-generation', components },
   });
 }

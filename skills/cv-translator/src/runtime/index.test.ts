@@ -40,7 +40,6 @@ const FAILING_VALIDATION_JSON = validationJson({ faithfulness: 1 });
 
 const config: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 5,
   maxLengthRatio: 100, // generous: the draft text length here is not the point of these tests
   forbiddenCharacters: ['—', '–'],

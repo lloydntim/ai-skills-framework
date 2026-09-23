@@ -17,7 +17,6 @@ import { validateDraft } from './validator';
 
 const config: RuntimeConfig = {
   temperature: 0.3,
-  maxOutputTokens: 4000,
   maxRevisionAttempts: 5,
   maxLengthRatio: 100,
   forbiddenCharacters: ['—', '–'],
