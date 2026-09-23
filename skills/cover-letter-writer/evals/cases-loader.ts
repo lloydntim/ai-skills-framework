@@ -1,6 +1,8 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { loadCases as loadCasesFrom } from '@skills/framework/evals/cases-loader';
+import { resolveDatasetDir } from '@skills/framework/manifest/dataset-resolver';
+import { loadManifest } from '@skills/framework/manifest/skill-manifest';
+import { SKILL_DIR } from '../src/skill-dir';
 import type { EvalCase } from './types';
 import type { DeterministicCheckInput } from '../src/deterministic-checks';
 import { parsePhraseBank, type StandardPhrase } from '../src/phrase-bank';
@@ -13,14 +15,17 @@ import { parsePreferenceBank } from '../src/preference-bank';
  * against. Where they do not, each directory falls back to the public, synthetic case set in
  * evals/cases/ (built on candidate-profile.example.md), so a public checkout is never left with
  * zero cases: `pnpm eval` and `pnpm eval:regression` still have something real to run, and the
- * structural properties the private cases exist to protect are still exercised.
+ * structural properties the private cases exist to protect are still exercised. skill.json is the
+ * one place that declares both dirs; `resolveDatasetDir` (shared with `snapshotVersions` and
+ * `checkSkillPackage`) is what actually chooses between them, so this file does not re-implement
+ * the fallback.
  */
-const REFERENCE_CASES_DIR = path.join(__dirname, '..', 'reference', 'evals');
 const PUBLIC_CASES_DIR = path.join(__dirname, 'cases');
 
 function resolveCasesDir(name: 'golden' | 'benchmark'): string {
-  const privateDir = path.join(REFERENCE_CASES_DIR, name);
-  return fs.existsSync(privateDir) ? privateDir : path.join(PUBLIC_CASES_DIR, name);
+  const entry = loadManifest(SKILL_DIR).datasets[name];
+  if (!entry) throw new Error(`skill.json does not declare a "${name}" dataset`);
+  return resolveDatasetDir(SKILL_DIR, entry).dir;
 }
 
 export const GOLDEN_DIR = resolveCasesDir('golden');

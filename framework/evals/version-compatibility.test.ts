@@ -36,6 +36,23 @@ describe('a changed evaluator or dataset is never read as a quality change', () 
     expect(report.level).toBe('INCOMPATIBLE');
     expect(codes(report)).toContain('DATASET_CHANGED');
   });
+
+  it('blocks when the same dataset name resolved to different underlying cases (private vs. public fallback)', () => {
+    const report = checkCompatibility(
+      makeRun({ cases: CASES, dataset: 'golden', versions: makeVersions({ goldenSource: 'declared' }) }),
+      makeRun({ cases: CASES, dataset: 'golden', versions: makeVersions({ goldenSource: 'fallback' }) })
+    );
+    expect(report.level).toBe('INCOMPATIBLE');
+    expect(codes(report)).toContain('DATASET_SOURCE_CHANGED');
+  });
+
+  it('stays quiet when both runs resolved the dataset the same way', () => {
+    const report = checkCompatibility(
+      makeRun({ cases: CASES, dataset: 'golden', versions: makeVersions({ goldenSource: 'declared' }) }),
+      makeRun({ cases: CASES, dataset: 'golden', versions: makeVersions({ goldenSource: 'declared' }) })
+    );
+    expect(codes(report)).not.toContain('DATASET_SOURCE_CHANGED');
+  });
 });
 
 describe('pairwise judge changes', () => {

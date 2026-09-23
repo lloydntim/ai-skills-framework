@@ -49,6 +49,14 @@ This follows the skill-framework blueprint, all 8 steps.
 | + Reference material | `reference/` (private), the candidate profile, source PDFs, and a CV transcription used only to validate the phrase bank |
 | + Benchmark cases | `reference/evals/benchmark/` (private), 10 cases across strong-match, partial-match, technology-gap, employer-preference-conflict and tempting-unsupported-claim, in English and German |
 
+A checkout without `reference/` mounted (any public checkout) runs the same commands against the
+synthetic cases in `evals/cases/golden/` and `evals/cases/benchmark/` instead — `skill.json`
+declares both paths per dataset, and `resolveDatasetDir` (`framework/manifest/dataset-resolver.ts`)
+picks whichever exists. Every saved run's `versions.datasets.<name>.source` says which one actually
+ran (`"declared"` for the private cases, `"fallback"` for the public ones), so a public run's
+result is never mistaken for a private regression run of the same nominal dataset (see
+`docs/ARCHITECTURE.md`, "Datasets in a checkout without private material").
+
 Steps 5 to 8 cost API tokens on every run, for as long as the project lives — `pnpm eval`,
 `pnpm eval:regression` and `pnpm generate` all make real, paid model calls (see "Commands"
 below for the full free/paid split). Nothing here has been measured against a model yet, and no

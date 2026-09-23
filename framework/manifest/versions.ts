@@ -2,6 +2,7 @@ import path from 'node:path';
 import { sha256, hashObject } from '../hash';
 import { loadCases } from '../evals/cases-loader';
 import { SKILL_FILE, loadManifest } from './skill-manifest';
+import { resolveDatasetDir, type DatasetSource } from './dataset-resolver';
 import fs from 'node:fs';
 
 export interface VersionedFile {
@@ -11,6 +12,13 @@ export interface VersionedFile {
 
 export interface VersionedDataset extends VersionedFile {
   caseCount: number;
+  /**
+   * Which manifest field the hash was actually computed from. Optional so a run saved before this
+   * field existed still loads. Two runs of the same declared dataset name/version can still have
+   * legitimately different content -- one against private reference cases, the other against the
+   * public fallback -- and this is what keeps them from looking like the same measurement.
+   */
+  source?: DatasetSource;
 }
 
 /**
@@ -36,8 +44,9 @@ export function snapshotVersions(skillDir: string): RunVersions {
   const datasets: RunVersions['datasets'] = {};
   for (const [name, entry] of Object.entries(manifest.datasets)) {
     if (!entry) continue;
-    const cases = loadCases<{ id: string }>(path.join(skillDir, entry.dir));
-    datasets[name] = { version: entry.version, hash: hashObject(cases), caseCount: cases.length };
+    const resolved = resolveDatasetDir(skillDir, entry);
+    const cases = loadCases<{ id: string }>(resolved.dir);
+    datasets[name] = { version: entry.version, hash: hashObject(cases), caseCount: cases.length, source: resolved.source };
   }
 
   return {

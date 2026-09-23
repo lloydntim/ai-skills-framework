@@ -11,8 +11,8 @@
     "pairwiseEvaluator": { "file": "prompts/pairwise-evaluator.md", "version": "1" }
   },
   "datasets": {
-    "benchmark": { "dir": "reference/evals/benchmark", "version": "1" },
-    "golden": { "dir": "reference/evals/golden", "version": "1" }
+    "benchmark": { "dir": "reference/evals/benchmark", "publicDir": "evals/cases/benchmark", "version": "1" },
+    "golden": { "dir": "reference/evals/golden", "publicDir": "evals/cases/golden", "version": "1" }
   },
   "export": { "exclude": [] }
 }

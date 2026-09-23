@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { hashObject } from '../hash';
 import { makeSkillDir, writeSkillFile } from '../testing/make-skill-dir';
 import { checkSkillPackage } from './check-skill-package';
 import { snapshotVersions } from './versions';
@@ -9,6 +10,13 @@ let dir: string;
 
 function write(rel: string, content: string) {
   writeSkillFile(dir, rel, content);
+}
+
+/** Points the golden dataset at a private `dir` with a public `publicDir` fallback declared. */
+function useReferenceGoldenWithFallback() {
+  const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'skill.json'), 'utf-8'));
+  manifest.datasets.golden = { dir: 'reference/evals/golden', publicDir: 'evals/cases/golden', version: '1' };
+  write('skill.json', JSON.stringify(manifest));
 }
 
 beforeEach(() => {
@@ -62,6 +70,18 @@ describe('checkSkillPackage', () => {
     write('skill.json', JSON.stringify(manifest));
     expect(checkSkillPackage(dir).join('\n')).toMatch(/validatr|Unrecognized/i);
   });
+
+  it('accepts a dataset whose declared (private) dir is absent when its publicDir fallback has cases', () => {
+    useReferenceGoldenWithFallback();
+    // evals/cases/golden already has a.json from makeSkillDir(); reference/evals/golden does not exist.
+    expect(checkSkillPackage(dir)).toEqual([]);
+  });
+
+  it('reports a dataset whose declared dir and publicDir are both absent', () => {
+    useReferenceGoldenWithFallback();
+    fs.rmSync(path.join(dir, 'evals/cases/golden'), { recursive: true, force: true });
+    expect(checkSkillPackage(dir).join('\n')).toMatch(/dataset "golden".*reference\/evals\/golden.*evals\/cases\/golden/s);
+  });
 });
 
 describe('snapshotVersions', () => {
@@ -88,5 +108,32 @@ describe('snapshotVersions', () => {
     const before = snapshotVersions(dir);
     write('evals/cases/golden/a.json', JSON.stringify([{ id: 'c1', input: 'y' }]));
     expect(snapshotVersions(dir).datasets.golden.hash).not.toBe(before.datasets.golden.hash);
+  });
+
+  it('records "declared" when the dataset\'s own dir is used', () => {
+    expect(snapshotVersions(dir).datasets.golden.source).toBe('declared');
+  });
+
+  it('falls back to the public dataset when the declared (private) dir is absent, and records that', () => {
+    useReferenceGoldenWithFallback();
+    const v = snapshotVersions(dir);
+    // reference/evals/golden does not exist; evals/cases/golden (from makeSkillDir()) does.
+    expect(v.datasets.golden.source).toBe('fallback');
+    expect(v.datasets.golden.hash).toBe(hashObject([{ id: 'c1', input: 'x' }]));
+  });
+
+  it('snapshots the private dataset, not the public fallback, when the private dir is present', () => {
+    useReferenceGoldenWithFallback();
+    write('reference/evals/golden/a.json', JSON.stringify([{ id: 'private-1', input: 'real cv text' }]));
+    const v = snapshotVersions(dir);
+    expect(v.datasets.golden.source).toBe('declared');
+    expect(v.datasets.golden.hash).toBe(hashObject([{ id: 'private-1', input: 'real cv text' }]));
+    expect(v.datasets.golden.hash).not.toBe(hashObject([{ id: 'c1', input: 'x' }]));
+  });
+
+  it('fails clearly when neither the declared dataset dir nor its public fallback exists', () => {
+    useReferenceGoldenWithFallback();
+    fs.rmSync(path.join(dir, 'evals/cases/golden'), { recursive: true, force: true });
+    expect(() => snapshotVersions(dir)).toThrow(/reference\/evals\/golden.*evals\/cases\/golden/s);
   });
 });

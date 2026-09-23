@@ -157,6 +157,22 @@ Every run also records: the skill name and version, the dataset used, each role'
 the git commit, whether the skill or framework had uncommitted changes, request, token, cost and time
 totals for the run, and a hash of the configuration.
 
+### Datasets in a checkout without private material
+
+A dataset's `dir` in `skill.json` can point at private regression material (Cover Letter Writer's
+does: `reference/evals/...`), which a public checkout never has mounted. Such a dataset also
+declares `publicDir`, the synthetic fallback cover-letter-writer's own eval scripts already used
+(`evals/cases/...`, built on `candidate-profile.example.md`). `resolveDatasetDir`
+(`framework/manifest/dataset-resolver.ts`) is the one place that chooses between them: `dir` when it
+exists, `publicDir` otherwise. `snapshotVersions` and `checkSkillPackage` both call it, so a public
+checkout hashes and validates the same cases an eval run actually loads, instead of failing closed
+on the private path or silently reporting its hash while public cases ran. The chosen source is
+recorded on the dataset's version entry (`"declared"` or `"fallback"`), so two runs of the same
+named dataset can never look like the same measurement when one ran against private cases and the
+other against the public fallback; `regression-compatibility.ts` treats a source mismatch as
+`INCOMPATIBLE`. A dataset with no `publicDir` (cv-translator's, skill-framework's) is unaffected:
+its `dir` is the only copy, and a missing one is still a real, reported problem.
+
 ## What each model call sees
 
 Each call is sent only what its job needs. A skill's **context requirements** say what that is: what

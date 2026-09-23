@@ -478,6 +478,23 @@ export function checkCompatibility(
       previous: previous.dataset,
       current: current.dataset,
     });
+  } else if (previous.dataset !== undefined && current.dataset !== undefined && previousVersions && currentVersions) {
+    // Same declared dataset name and, possibly, the same version -- but a skill that falls back
+    // from private reference cases to a public synthetic set (see resolveDatasetDir) can still have
+    // run each side against genuinely different content. The hash comparison above already warns
+    // when content silently changed under an unbumped version; this catches the specific case where
+    // the two runs were never measuring the same underlying cases at all.
+    const previousSource = previousVersions.datasets[previous.dataset]?.source;
+    const currentSource = currentVersions.datasets[current.dataset]?.source;
+    if (previousSource !== undefined && currentSource !== undefined && previousSource !== currentSource) {
+      findings.push({
+        level: 'INCOMPATIBLE',
+        code: 'DATASET_SOURCE_CHANGED',
+        message: `The "${current.dataset}" dataset resolved to different underlying cases in each run (one declared, one a fallback), so their scores are not the same measurement.`,
+        previous: previousSource,
+        current: currentSource,
+      });
+    }
   }
 
   if (previous.gitDirty === true || current.gitDirty === true) {

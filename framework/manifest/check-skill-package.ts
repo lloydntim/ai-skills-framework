@@ -3,6 +3,7 @@ import path from 'node:path';
 import { loadCases } from '../evals/cases-loader';
 import { MODEL_ROLES } from '../provider/model-roles';
 import { parsePromptFile } from '../prompts/prompt-file';
+import { resolveDatasetDir } from './dataset-resolver';
 import { importSpecifiers } from './imports';
 import { loadManifest, SKILL_FILE } from './skill-manifest';
 
@@ -60,16 +61,13 @@ export function checkSkillPackage(skillDir: string): string[] {
 
   for (const [name, entry] of Object.entries(manifest.datasets)) {
     if (!entry) continue;
-    const dir = path.join(skillDir, entry.dir);
-    // A dataset under reference/ is the candidate's private regression material (see
-    // scripts/export-skill.ts's PRIVATE_DIRS): it is never exported, and a public checkout never
-    // has it mounted. That absence is a supported environment condition, not a structural defect
-    // in the skill package, so it is skipped here rather than reported. Any other missing or
-    // malformed dataset is still a real problem.
-    if (entry.dir.startsWith('reference/') && !fs.existsSync(dir)) continue;
+    // A dataset that declares publicDir is allowed to be missing its declared (usually private,
+    // e.g. reference/) dir in a public checkout, since resolveDatasetDir falls back to publicDir.
+    // A dataset with no publicDir has only one copy, so its dir missing is a real defect.
     try {
-      const cases = loadCases<{ id: string }>(dir);
-      need(cases.length > 0, `dataset "${name}": ${entry.dir} has no cases`);
+      const resolved = resolveDatasetDir(skillDir, entry);
+      const cases = loadCases<{ id: string }>(resolved.dir);
+      need(cases.length > 0, `dataset "${name}": ${path.relative(skillDir, resolved.dir)} has no cases`);
     } catch (err) {
       problems.push(`dataset "${name}": ${err instanceof Error ? err.message : String(err)}`);
     }

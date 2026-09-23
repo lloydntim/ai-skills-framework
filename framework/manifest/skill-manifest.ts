@@ -3,7 +3,15 @@ import path from 'node:path';
 import { z } from 'zod';
 
 const Prompt = z.strictObject({ file: z.string().min(1), version: z.string().min(1) });
-const Dataset = z.strictObject({ dir: z.string().min(1), version: z.string().min(1) });
+const Dataset = z.strictObject({
+  dir: z.string().min(1),
+  version: z.string().min(1),
+  /**
+   * Falls back here when `dir` does not exist, e.g. private regression material under `reference/`
+   * that a public checkout never has mounted. Omit it when `dir` is already the only copy.
+   */
+  publicDir: z.string().min(1).optional(),
+});
 
 /**
  * skill.json: the one file that says what a skill is and which of its parts are versioned.

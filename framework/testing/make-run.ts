@@ -1,6 +1,7 @@
 import { hashObject } from '../hash';
 import type { ComparableRun } from '../evals/regression-compatibility';
 import type { RunVersions } from '../manifest/versions';
+import type { DatasetSource } from '../manifest/dataset-resolver';
 
 /**
  * Builds saved-run fixtures for the comparison tests. Defaults describe a clean, fully recorded
@@ -41,7 +42,9 @@ function defaultCaseHash(id: string): string {
   return hashObject({ case: id });
 }
 
-export function makeVersions(overrides: Partial<Record<string, string>> = {}): RunVersions {
+export function makeVersions(
+  overrides: Partial<Record<string, string>> & { goldenSource?: DatasetSource } = {}
+): RunVersions {
   const file = (name: string, version = '1') => ({ version, hash: overrides[`${name}Hash`] ?? `${name}-hash-baseline` });
   return {
     skill: { name: 'demo', version: '1.0.0', hash: 'skill-hash-baseline' },
@@ -51,7 +54,9 @@ export function makeVersions(overrides: Partial<Record<string, string>> = {}): R
       evaluator: file('evaluator'),
       pairwiseEvaluator: file('pairwiseEvaluator'),
     },
-    datasets: { golden: { version: '1', hash: 'golden-hash-baseline', caseCount: 3 } },
+    datasets: {
+      golden: { version: '1', hash: overrides.goldenHash ?? 'golden-hash-baseline', caseCount: 3, source: overrides.goldenSource },
+    },
   };
 }
 
