@@ -1,8 +1,13 @@
 import { AnthropicProvider } from './anthropic-provider';
 import { MODEL_ROLES, type ModelRole, type ResolvedModelRoles } from './model-roles';
+import { DEFAULT_ROLE_RUNTIME, RoleRuntimeConfigError, RoleRuntimeProvider, parseRoleRuntime } from './role-runtime';
 import type { ModelProvider } from './types';
 
-/** Thrown for any problem in a model-role configuration: missing role, unknown provider, or a malformed entry. */
+/**
+ * Thrown for any problem in a model-role configuration: missing role, unknown provider, a malformed
+ * entry, or an unusable runtime setting. Every one of these is raised here, before a provider is
+ * ever called, so a bad configuration costs nothing to discover.
+ */
 export class ModelConfigError extends Error {
   constructor(message: string) {
     super(message);
@@ -93,5 +98,23 @@ function resolveRole(
     providerInstances.set(providerName, factory());
   }
 
-  return { provider: providerInstances.get(providerName)!, providerName, model };
+  // RoleRuntimeConfigError is the same class of problem as everything else this function reports —
+  // a configuration a caller has to fix — so it is re-thrown as a ModelConfigError rather than
+  // making every caller catch two error types for one file.
+  let runtime;
+  try {
+    runtime = parseRoleRuntime(role, entry, DEFAULT_ROLE_RUNTIME[role]);
+  } catch (err) {
+    if (err instanceof RoleRuntimeConfigError) throw new ModelConfigError(err.message);
+    throw err;
+  }
+
+  // The runtime wrapper is per role even though the provider instance underneath is shared, so two
+  // roles naming the same provider still get their own reasoning and budget.
+  return {
+    provider: new RoleRuntimeProvider(providerInstances.get(providerName)!, runtime),
+    providerName,
+    model,
+    runtime,
+  };
 }

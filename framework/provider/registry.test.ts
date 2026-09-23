@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ModelConfigError, resolveModelRoles } from './registry';
 import { toModelRolesConfig } from './model-roles';
+import { DEFAULT_ROLE_RUNTIME, RoleRuntimeProvider } from './role-runtime';
 import type { GenerationRequest, GenerationResult, ModelProvider } from './types';
 
 /** A ModelProvider that makes no network/API calls at all — for testing config resolution only. */
@@ -34,29 +35,56 @@ describe('resolveModelRoles — valid configuration', () => {
     expect(roles.evaluator.model).toBe('fake-large');
     expect(roles.pairwiseJudge.model).toBe('fake-large');
     expect(roles.generator.providerName).toBe('fake');
-    expect(roles.generator.provider).toBeInstanceOf(FakeProvider);
+    // Each role's provider is its own runtime wrapper around the shared client (see RoleRuntimeProvider).
+    expect(roles.generator.provider).toBeInstanceOf(RoleRuntimeProvider);
+    expect((roles.generator.provider as RoleRuntimeProvider).inner).toBeInstanceOf(FakeProvider);
   });
 
   it('shares one provider instance across every role that names the same provider', () => {
     const roles = resolveModelRoles(VALID_CONFIG, FAKE_FACTORIES);
 
-    // All 5 roles say "fake" in VALID_CONFIG — this must not construct 5 separate clients.
-    expect(roles.generator.provider).toBe(roles.validator.provider);
-    expect(roles.generator.provider).toBe(roles.evaluator.provider);
-    expect(roles.generator.provider).toBe(roles.pairwiseJudge.provider);
+    // All 5 roles say "fake" in VALID_CONFIG — this must not construct 5 separate clients. Each
+    // role gets its own thin runtime wrapper, but the client underneath is one object.
+    const client = (role: keyof typeof roles) => (roles[role].provider as RoleRuntimeProvider).inner;
+    expect(client('generator')).toBe(client('validator'));
+    expect(client('generator')).toBe(client('evaluator'));
+    expect(client('generator')).toBe(client('pairwiseJudge'));
+    expect(roles.generator.provider).not.toBe(roles.validator.provider);
   });
 
   it('resolves different roles to different provider instances when they name different providers', () => {
     const mixed = { ...VALID_CONFIG, evaluator: { provider: 'other', model: 'other-model' } };
     const roles = resolveModelRoles(mixed, FAKE_FACTORIES);
 
-    expect(roles.generator.provider).not.toBe(roles.evaluator.provider);
+    expect((roles.generator.provider as RoleRuntimeProvider).inner).not.toBe(
+      (roles.evaluator.provider as RoleRuntimeProvider).inner
+    );
     expect(roles.evaluator.providerName).toBe('other');
   });
 
-  it('round-trips through toModelRolesConfig back to the plain provider/model shape', () => {
+  it('records the effective runtime settings through toModelRolesConfig, not just what was authored', () => {
     const roles = resolveModelRoles(VALID_CONFIG, FAKE_FACTORIES);
-    expect(toModelRolesConfig(roles)).toEqual(VALID_CONFIG);
+
+    // VALID_CONFIG names no runtime settings, so what a run records is the defaults, spelled out.
+    // A saved result has to say how hard each role was asked to think; "nothing was said" is not an
+    // answer a later reader can act on.
+    expect(toModelRolesConfig(roles)).toEqual({
+      generator: { provider: 'fake', model: 'fake-small', ...DEFAULT_ROLE_RUNTIME.generator },
+      validator: { provider: 'fake', model: 'fake-small', ...DEFAULT_ROLE_RUNTIME.validator },
+      reviser: { provider: 'fake', model: 'fake-small', ...DEFAULT_ROLE_RUNTIME.reviser },
+      evaluator: { provider: 'fake', model: 'fake-large', ...DEFAULT_ROLE_RUNTIME.evaluator },
+      pairwiseJudge: { provider: 'fake', model: 'fake-large', ...DEFAULT_ROLE_RUNTIME.pairwiseJudge },
+    });
+  });
+
+  it('carries an authored runtime setting through in place of the default', () => {
+    const roles = resolveModelRoles(
+      { ...VALID_CONFIG, validator: { provider: 'fake', model: 'fake-small', reasoning: 'low', maxOutputTokens: 4000 } },
+      FAKE_FACTORIES
+    );
+
+    expect(roles.validator.runtime).toEqual({ reasoning: 'low', maxOutputTokens: 4000 });
+    expect(roles.generator.runtime).toEqual(DEFAULT_ROLE_RUNTIME.generator);
   });
 });
 
