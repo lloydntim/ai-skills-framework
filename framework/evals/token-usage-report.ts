@@ -7,6 +7,18 @@ export interface RequestTypeAggregate {
   totalTokens: number;
   totalInputTokens: number;
   totalOutputTokens: number;
+  /**
+   * How much of totalOutputTokens the model spent on reasoning rather than on the answer, when the
+   * provider reported the breakdown.
+   *
+   * It is *part of* totalOutputTokens, never an addition to it — the Anthropic API documents
+   * thinking tokens as always <= output tokens — so it is never added into any total here, and a
+   * run's bill does not change because this is recorded. What it is for is judging a role's output
+   * budget: a request type whose reasoning is most of its output has little room left for an
+   * answer, which is the failure this whole report exists to make visible. 0 when no request of
+   * this type reported a breakdown.
+   */
+  totalReasoningTokens: number;
   /** Of the tokens actually reported. Requests with no usage do not distort this. */
   percentOfTotalTokens: number;
   avgTokensPerRequest: number;
@@ -89,6 +101,7 @@ export function aggregateByRequestType(entries: readonly RequestLogEntry[]): Req
         totalTokens: groupTotal,
         totalInputTokens: group.reduce((sum, e) => sum + (e.usage?.inputTokens ?? 0), 0),
         totalOutputTokens: group.reduce((sum, e) => sum + (e.usage?.outputTokens ?? 0), 0),
+        totalReasoningTokens: group.reduce((sum, e) => sum + (e.usage?.reasoningTokens ?? 0), 0),
         percentOfTotalTokens: totalTokens > 0 ? (groupTotal / totalTokens) * 100 : 0,
         avgTokensPerRequest: group.length > 0 ? groupTotal / group.length : 0,
       };
@@ -222,13 +235,17 @@ export function formatTokenUsageReport(report: TokenUsageReport): string {
   }
   lines.push('');
 
-  const header = ['Request type', 'Calls', 'Total tokens', '% of total', 'Avg/call'];
+  const header = ['Request type', 'Calls', 'Total tokens', '% of total', 'Avg/call', 'Output', 'Reasoning'];
   const rows = report.byRequestType.map((r) => [
     r.requestType,
     String(r.requestCount),
     formatInt(r.totalTokens),
     `${r.percentOfTotalTokens.toFixed(1)}%`,
     formatInt(r.avgTokensPerRequest),
+    formatInt(r.totalOutputTokens),
+    // Shown against output, not against the total: what matters for sizing a budget is how much of
+    // the output budget reasoning took, and input tokens are not spent out of that budget.
+    r.totalOutputTokens > 0 ? `${((r.totalReasoningTokens / r.totalOutputTokens) * 100).toFixed(0)}%` : '-',
   ]);
   const widths = header.map((h, i) => Math.max(h.length, ...rows.map((row) => row[i].length)));
   const renderRow = (cells: string[]) =>
@@ -236,6 +253,12 @@ export function formatTokenUsageReport(report: TokenUsageReport): string {
   lines.push(renderRow(header));
   lines.push(widths.map((w) => '-'.repeat(w)).join('  '));
   for (const row of rows) lines.push(renderRow(row));
+
+  if (report.byRequestType.some((r) => r.totalReasoningTokens > 0)) {
+    lines.push('');
+    lines.push('"Reasoning" is the share of that type\'s output tokens spent thinking rather than answering. It is');
+    lines.push('part of the output column, not extra: a type near 100% had no budget left for an answer.');
+  }
 
   const anyUnclassified = report.byRequestType.some((r) => r.requestType === 'unclassified');
   if (anyUnclassified) {

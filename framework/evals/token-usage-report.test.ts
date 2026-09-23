@@ -319,3 +319,39 @@ describe('aggregatePromptParts', () => {
     expect(formatTokenUsageReport(report)).toMatch(/characters, not tokens[\s\S]*revision \/ previous-output: avg 1,234/);
   });
 });
+
+describe('reasoning tokens in the report', () => {
+  it('sums the reasoning share per request type without folding it into any total', () => {
+    const report = buildTokenUsageReport([
+      entry({ requestType: 'initial-generation', caseId: 'c1', usage: { inputTokens: 1000, outputTokens: 900, totalTokens: 1900, reasoningTokens: 700 } }),
+      entry({ requestType: 'initial-generation', caseId: 'c2', usage: { inputTokens: 1000, outputTokens: 500, totalTokens: 1500, reasoningTokens: 300 } }),
+    ]);
+    const generation = report.byRequestType.find((r) => r.requestType === 'initial-generation')!;
+
+    expect(generation.totalReasoningTokens).toBe(1000);
+    // Reasoning is part of output, so neither the output total nor the grand total moves because of it.
+    expect(generation.totalOutputTokens).toBe(1400);
+    expect(generation.totalTokens).toBe(3400);
+    expect(report.totalTokens).toBe(3400);
+  });
+
+  it('reports zero, not undefined, for a request type whose provider sent no breakdown', () => {
+    const report = buildTokenUsageReport([
+      entry({ requestType: 'semantic-validation', caseId: 'c1', usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 } }),
+    ]);
+
+    expect(report.byRequestType[0].totalReasoningTokens).toBe(0);
+  });
+
+  it('prints the reasoning share of output, and explains that it is part of output rather than extra', () => {
+    const text = formatTokenUsageReport(
+      buildTokenUsageReport([
+        entry({ requestType: 'initial-generation', caseId: 'c1', usage: { inputTokens: 1000, outputTokens: 1000, totalTokens: 2000, reasoningTokens: 900 } }),
+      ])
+    );
+
+    expect(text).toContain('Reasoning');
+    expect(text).toContain('90%');
+    expect(text).toContain('part of the output column, not extra');
+  });
+});
