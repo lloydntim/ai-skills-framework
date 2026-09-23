@@ -1,0 +1,3 @@
+{
+  "advisor": { "provider": "anthropic", "model": "claude-sonnet-5" }
+}

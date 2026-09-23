@@ -1,0 +1,20 @@
+{
+  "name": "cv-translator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "translate": "tsx scripts/translate-cv.ts",
+    "build:skill": "tsx scripts/build-claude-skill.ts",
+    "eval": "tsx evals/run-evals.ts",
+    "eval:matrix": "tsx evals/run-matrix.ts",
+    "eval:regression": "tsx evals/run-regression.ts",
+    "eval:approve": "tsx evals/run-regression.ts --approve=true",
+    "eval:compare": "tsx evals/run-regression.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@skills/framework": "workspace:*"
+  }
+}

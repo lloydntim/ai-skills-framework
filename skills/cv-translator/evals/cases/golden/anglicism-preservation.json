@@ -1,0 +1,26 @@
+[
+  {
+    "id": "golden-anglicism-001",
+    "category": "anglicism-preservation",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "targetMarket": "Germany",
+    "input": "Staff Backend Engineer with 11 years of experience designing and scaling distributed systems across fintech and logistics platforms.\nMy core expertise is in event-driven architecture and backend development with Go, Kotlin and distributed data stores, using test-driven development and continuous deployment pipelines (GitHub Actions) to take services from design through production rollout.\nI focus on building resilient infrastructure that helps teams operate reliably at scale.",
+    "instructions": "Translate and localise this CV profile summary for the German market, preserving all technical terms, tools, and the 11 years of experience figure exactly.",
+    "expectedFacts": [
+      "11 years of experience",
+      "Staff Backend Engineer",
+      "event-driven architecture",
+      "backend development with Go, Kotlin and distributed data stores",
+      "uses test-driven development and continuous deployment pipelines with GitHub Actions",
+      "builds resilient infrastructure so teams can operate reliably at scale"
+    ],
+    "forbiddenClaims": [
+      "testgetrieben",
+      "kontinuierliche Bereitstellungspipelines",
+      "die Teams dabei unterstützen"
+    ],
+    "requiredExactStrings": ["11"],
+    "requiredTerms": ["Test-Driven", "Go", "GitHub Actions", "Event-Driven"]
+  }
+]

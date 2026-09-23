@@ -1,0 +1,18 @@
+[
+  {
+    "id": "public-golden-german-001",
+    "category": "german-anschreiben",
+    "language": "de",
+    "market": "dach",
+    "cvText": "CONTOSO BANK  Manchester, UK | März 2021 - Dez 2022\nJunior Frontend Developer\n- Führte Vitest und strukturierte Code Reviews ein und erhöhte die Frontend-Testabdeckung von 20% auf 65%.\n- Arbeitete eng mit dem Backend-Team an den Schnittstellen des Kontoübersicht-Dashboards.\nStack: React, TypeScript, Vitest.",
+    "roleDescription": "Frontend Engineer (m/w/d), Nordlicht Digital GmbH, Hamburg. Wir suchen jemanden mit Erfahrung in Testautomatisierung.",
+    "instructions": "Schreibe ein maßgeschneidertes Anschreiben auf Deutsch. Halte die Anschreiben-Konventionen ein und verwende keine Gedankenstriche.",
+    "expectedFacts": ["führte Vitest ein und erhöhte die Testabdeckung von 20% auf 65% bei Contoso Bank"],
+    "forbiddenClaims": ["Ich habe Testing-Erfahrung", "gemeinsame Bibliothek", "geteilte Bibliothek"],
+    "requiredExactStrings": ["20", "65"],
+    "requiredTerms": ["Contoso Bank", "Vitest"],
+    "minWords": 200,
+    "maxWords": 350,
+    "templateLanguage": "de"
+  }
+]

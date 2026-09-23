@@ -1,0 +1,25 @@
+{
+  "name": "cover-letter-writer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "tsx scripts/check-letter.ts",
+    "build:cv": "tsx scripts/build-reference-cv.ts",
+    "build:skill": "tsx scripts/build-claude-skill.ts",
+    "build:letter": "bash scripts/build-letter.sh",
+    "generate": "tsx scripts/generate-letter.ts",
+    "context:sizes": "tsx scripts/context-sizes.ts",
+    "eval": "tsx evals/run-evals.ts",
+    "eval:ab": "tsx evals/run-evals.ts --variants=A,B",
+    "eval:regression": "tsx evals/run-regression.ts",
+    "eval:compare": "tsx evals/run-regression.ts",
+    "eval:approve": "tsx evals/run-regression.ts --approve=true",
+    "usage:summary": "tsx scripts/usage-summary.ts"
+  },
+  "dependencies": {
+    "@skills/framework": "workspace:*"
+  }
+}

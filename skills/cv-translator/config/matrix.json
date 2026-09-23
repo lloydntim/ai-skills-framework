@@ -1,0 +1,7 @@
+{
+  "configurations": [
+    { "label": "cheap", "modelsConfig": "config/models.haiku.json" },
+    { "label": "primary", "modelsConfig": "config/models.json" }
+  ],
+  "variants": ["A", "B"]
+}

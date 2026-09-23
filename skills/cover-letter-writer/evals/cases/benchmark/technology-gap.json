@@ -1,0 +1,18 @@
+[
+  {
+    "id": "public-benchmark-technology-gap-001",
+    "category": "technology-gap",
+    "language": "en",
+    "cvText": "CONTOSO BANK  Manchester, UK | Mar 2021 - Dec 2022\nJunior Frontend Developer\n- Introduced Vitest and structured code reviews, raising frontend test coverage from 20% to 65%.\nStack: React, TypeScript, Vitest.",
+    "roleDescription": "Frontend Engineer, Marlowe Systems. Deep Rust experience required for a WebAssembly module.",
+    "instructions": "Write a tailored cover letter. The CV has no Rust or WebAssembly experience - be honest about the gap rather than claiming it.",
+    "expectedFacts": ["no Rust or WebAssembly experience claimed"],
+    "forbiddenClaims": ["experience with Rust", "WebAssembly experience", "I have built WebAssembly modules"],
+    "allowedTechnologies": ["Rust", "WebAssembly"],
+    "requiredExactStrings": ["Marlowe Systems"],
+    "requiredTerms": ["Marlowe Systems"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "public-benchmark-employer-preference-conflict-001",
+    "category": "employer-preference-conflict",
+    "language": "en",
+    "market": "uk",
+    "cvText": "NORTHWIND RETAIL  London, UK | Apr 2019 - Feb 2021\nFrontend Engineer\n- Moved the product pages to server-side rendering, lifting Lighthouse scores from 60 to 90 without losing search traffic.\nStack: React, Next.js, TypeScript.",
+    "roleDescription": "Frontend Engineer, Alderney Systems (fully on-site, established 300-person company, standard 9-to-5). No mention of remote work or a training budget.",
+    "instructions": "Write a tailored cover letter. Do not credit this employer with remote work, a learning budget or any other benefit the advert does not mention.",
+    "expectedFacts": ["applies to an on-site, established company without claiming unlisted benefits"],
+    "forbiddenClaims": ["Working remotely matters to me", "A budget for learning appeals to me", "home office", "training budget"],
+    "requiredExactStrings": ["Alderney Systems"],
+    "requiredTerms": ["Alderney Systems"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

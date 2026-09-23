@@ -1,0 +1,17 @@
+[
+  {
+    "id": "public-golden-preference-001",
+    "category": "job-preferences",
+    "language": "en",
+    "market": "dach",
+    "cvText": "FABRIKAM ENERGY  Leipzig, Germany | Jan 2023 - Present\nFrontend Engineer\n- Helped consolidate three separate form implementations into one shared component library, adopted across four product teams.\nStack: React, TypeScript, Vitest.",
+    "roleDescription": "Frontend Engineer, Kestrel Systeme GmbH (on-site, Leipzig office, no remote work). Offers an annual learning budget and works with colleagues across three countries.",
+    "instructions": "Write a tailored cover letter. Only mention preferences the advert actually offers: do not claim you are drawn to remote work when the role is on-site.",
+    "expectedFacts": ["expresses interest in the learning budget and the international team, not remote work"],
+    "forbiddenClaims": ["Working remotely matters to me", "remote-first", "home office"],
+    "requiredTerms": ["Kestrel Systeme GmbH"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

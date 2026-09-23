@@ -1,0 +1,25 @@
+{
+  "temperature": 0.3,
+  "evaluatorTemperature": 0,
+  "maxOutputTokens": 4000,
+  "defaultVariants": ["A", "B"],
+  "maxLengthRatio": 1.15,
+  "forbiddenCharacters": ["—", "–"],
+  "regression": {
+    "hardFail": {
+      "forbiddenClaimMatches": 0,
+      "unsupportedClaims": 0,
+      "missingRequiredStrings": 0,
+      "forbiddenCharacterMatches": 0,
+      "structuralMismatches": 0,
+      "goldenFailures": 0
+    },
+    "reviewThresholds": {
+      "overallScoreDrop": 0.2,
+      "naturalnessDrop": 0.2,
+      "faithfulnessDrop": 0.1,
+      "cvQualityDrop": 0.2,
+      "tokenIncreasePercent": 25
+    }
+  }
+}

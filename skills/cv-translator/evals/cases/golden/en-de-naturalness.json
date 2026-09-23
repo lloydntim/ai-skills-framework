@@ -1,0 +1,23 @@
+[
+  {
+    "id": "golden-en-de-naturalness-001",
+    "category": "en-de-naturalness",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "Responsible for designing and building a scalable frontend architecture for a platform with over 2 million monthly users.",
+    "instructions": "Translate and localise this for a senior software engineer CV targeting the German market.",
+    "expectedFacts": ["verantwortlich für Konzeption und Umsetzung einer skalierbaren Frontend-Architektur", "mehr als 2 Millionen monatliche Nutzer"],
+    "forbiddenClaims": ["leitete die Entwicklungsabteilung"],
+    "requiredExactStrings": ["2 Millionen"]
+  },
+  {
+    "id": "golden-en-de-naturalness-002",
+    "category": "en-de-naturalness",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "Mentored two junior engineers and reviewed their pull requests.",
+    "instructions": "Translate and localise this for a senior software engineer CV targeting the German market.",
+    "expectedFacts": ["betreute zwei Junior-Entwickler", "review von Pull Requests"],
+    "forbiddenClaims": ["leitete das gesamte Entwicklungsteam"]
+  }
+]

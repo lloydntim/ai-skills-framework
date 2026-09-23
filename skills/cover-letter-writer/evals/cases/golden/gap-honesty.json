@@ -1,0 +1,20 @@
+[
+  {
+    "id": "public-golden-gap-honesty-001",
+    "category": "gap-honesty",
+    "language": "en",
+    "cvText": "FABRIKAM ENERGY  Leipzig, Germany | Jan 2023 - Present\nFrontend Engineer\n- Delivered several features in Vue during a legacy-dashboard migration, before the team standardised on React.\nCONTOSO BANK  Manchester, UK | Mar 2021 - Dec 2022\nJunior Frontend Developer\n- Used jQuery for small DOM-manipulation fixes on a legacy marketing site.\nStack (current): React, TypeScript, Vitest, Storybook.",
+    "roleDescription": "Senior Frontend Engineer, Birchwood Analytics. Vue expertise required. Must be comfortable maintaining a jQuery-based admin tool.",
+    "instructions": "Write a tailored cover letter that addresses the Vue and jQuery requirements honestly: real but dated or adjacent exposure, not hidden and not inflated into current expertise.",
+    "expectedFacts": [
+      "has worked with Vue at Fabrikam Energy, though recent depth is in React",
+      "jQuery exposure was small legacy fixes at Contoso Bank in 2021, not extensive current experience"
+    ],
+    "forbiddenClaims": ["extensive jQuery experience", "deep Vue expertise", "I am a Vue expert", "advanced jQuery skills"],
+    "allowedTechnologies": ["Vue", "jQuery"],
+    "requiredTerms": ["Vue", "jQuery"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

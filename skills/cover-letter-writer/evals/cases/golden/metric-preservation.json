@@ -1,0 +1,17 @@
+[
+  {
+    "id": "public-golden-metric-001",
+    "category": "metric-preservation",
+    "language": "en",
+    "cvText": "NORTHWIND RETAIL  London, UK | Apr 2019 - Feb 2021\nFrontend Engineer\nMulti-brand e-commerce retailer.\n- Moved the product pages to server-side rendering, lifting Lighthouse scores from 60 to 90 without losing search traffic.\n- Worked with four product teams to migrate shared UI patterns into a single design system.\nStack: React, Next.js, TypeScript, Lighthouse, SEO tooling.",
+    "roleDescription": "Frontend Performance Engineer, Ashgrove Media. Tell us about a time you dramatically improved a slow site.",
+    "instructions": "Write a tailored cover letter using only the CV's own numbers. Do not restate 'from 60 to 90' as a percentage or any other derived figure.",
+    "expectedFacts": ["lifted Lighthouse scores from 60 to 90 without losing search traffic at Northwind Retail"],
+    "forbiddenClaims": ["a 50% performance gain", "50% improvement", "nearly doubled performance scores"],
+    "requiredExactStrings": ["60", "90"],
+    "requiredTerms": ["Northwind Retail", "Lighthouse"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

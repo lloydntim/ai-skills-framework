@@ -1,0 +1,21 @@
+[
+  {
+    "id": "public-golden-invented-tech-001",
+    "category": "invented-facts",
+    "language": "en",
+    "cvText": "CONTOSO BANK  Manchester, UK | Mar 2021 - Dec 2022\nJunior Frontend Developer\nRetail banking group.\n- Introduced Vitest and structured code reviews, raising frontend test coverage from 20% to 65%.\n- Built REST API integrations for the account-summary dashboard using TypeScript and React Query.\n- Worked alongside backend engineers on request/response contracts, without owning the backend services.\nStack: React, TypeScript, React Query, Vitest, REST.",
+    "roleDescription": "Frontend Engineer, Palisade Freight. Our stack streams events through Kafka end to end, and we want someone who already brings hands-on Kafka experience.",
+    "instructions": "Write a tailored cover letter. The candidate has never used Kafka - do not claim otherwise, and do not imply hands-on experience with anything the CV does not mention.",
+    "expectedFacts": [
+      "introduced Vitest and structured code reviews, raising test coverage from 20% to 65% at Contoso Bank",
+      "no Kafka experience is claimed"
+    ],
+    "forbiddenClaims": ["experience with Kafka", "hands-on Kafka", "I have used Kafka", "already bring some knowledge of Kafka"],
+    "requiredExactStrings": ["20", "65"],
+    "requiredTerms": ["Contoso Bank", "Vitest"],
+    "allowedTechnologies": ["Kafka"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

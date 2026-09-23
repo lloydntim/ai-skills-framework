@@ -1,0 +1,43 @@
+[
+  {
+    "id": "de-en-001",
+    "category": "translation",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Verantwortlich für die Konzeption und Umsetzung einer skalierbaren Frontend-Architektur für ein E-Commerce-System.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["responsibility for designing and implementing frontend architecture", "architecture was scalable", "for an e-commerce system"],
+    "forbiddenClaims": ["managed the engineering department", "increased revenue"]
+  },
+  {
+    "id": "de-en-002",
+    "category": "architecture-wording",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Einführung einer Micro-Frontend-Architektur zur Entkopplung der Teams.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["introduced a micro-frontend architecture", "goal was to decouple teams"],
+    "forbiddenClaims": ["rewrote the entire platform"]
+  },
+  {
+    "id": "de-en-003",
+    "category": "measurable-achievements",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Reduzierte die Ladezeit der Startseite von 4,2 Sekunden auf 1,8 Sekunden.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["reduced homepage load time from 4.2 seconds to 1.8 seconds"],
+    "forbiddenClaims": ["reduced load time by 90%"],
+    "requiredExactStrings": ["4.2", "1.8"]
+  },
+  {
+    "id": "de-en-004",
+    "category": "difficult-literal-translation",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "War federführend bei der Erstellung des technischen Konzepts für die neue Zahlungsabwicklung.",
+    "instructions": "Translate and localise this for a senior software engineer CV, avoiding a literal, awkward translation of 'federführend'.",
+    "expectedFacts": ["took the lead in creating the technical design for the new payment processing"],
+    "forbiddenClaims": ["was feather-leading", "held the pen"]
+  }
+]

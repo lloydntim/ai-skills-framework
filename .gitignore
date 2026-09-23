@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+coverage/
+exports/
+.claude/settings.local.json
+
+# Private material. A skill's reference/ folder holds a real person's CV, profile and the
+# regression cases built from them; skills/private/ holds skills that are not published. Both are
+# a separate, private repository cloned into this checkout. Nothing under either is ever committed
+# here — not with `git add -f` either. See README.md, "How private context is kept out".
+skills/*/reference/
+skills/private/
+
+# Runtime output. data/ is the usage ledger, whose error messages can carry raw provider text.
+# evals/results/ holds full runs, and every one is a complete transcript of the model's output, so
+# none of them — an approved baseline included — belongs in this repository. A baseline lives in
+# the private reference/evals/results/ folder instead.
+skills/*/data/
+skills/*/evals/results/*
+!skills/*/evals/results/.gitkeep

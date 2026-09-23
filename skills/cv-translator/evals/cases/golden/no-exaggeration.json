@@ -1,0 +1,22 @@
+[
+  {
+    "id": "golden-no-exaggeration-001",
+    "category": "no-exaggeration",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "Was one of four engineers on the team that rebuilt the checkout flow.",
+    "instructions": "Rewrite this CV bullet to sound more professional and concise, for a senior software engineer CV.",
+    "expectedFacts": ["was part of a four-person team", "team rebuilt the checkout flow"],
+    "forbiddenClaims": ["led a team of four engineers", "was solely responsible for the checkout flow", "managed the checkout flow project"]
+  },
+  {
+    "id": "golden-no-exaggeration-002",
+    "category": "no-exaggeration",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Nahm an der Einführung eines neuen Design-Systems teil.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["participated in the rollout of a new design system"],
+    "forbiddenClaims": ["led the rollout of the design system", "created the design system single-handedly", "was responsible for the entire design system"]
+  }
+]

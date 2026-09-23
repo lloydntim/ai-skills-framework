@@ -1,0 +1,16 @@
+{
+  "defaultVariants": ["A", "B", "C"],
+  "evaluatorTemperature": 0,
+  "regression": {
+    "reviewThresholds": {
+      "overallDrop": 0.2,
+      "factualGroundingDrop": 0.1,
+      "jobRelevanceDrop": 0.2,
+      "professionalToneDrop": 0.2,
+      "specificityDrop": 0.2,
+      "naturalnessDrop": 0.2,
+      "concisenessDrop": 0.2,
+      "tokenIncreasePercent": 25
+    }
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "public-golden-placeholder-001",
+    "category": "template-filling",
+    "language": "en",
+    "cvText": "NORTHWIND RETAIL  London, UK | Apr 2019 - Feb 2021\nFrontend Engineer\n- Moved the product pages to server-side rendering, lifting Lighthouse scores from 60 to 90 without losing search traffic.\n- Helped consolidate three separate form implementations into one shared component library, adopted across four product teams.\nStack: React, Next.js, TypeScript.",
+    "roleDescription": "Frontend Engineer, Silverline Freight (Manchester). Hiring manager: Priya Anand. React and TypeScript, replacing a legacy jQuery admin tool. Start date flexible.",
+    "instructions": "Write a tailored cover letter for this role using the CV, following the supplied template exactly. Fill every slot from the CV and the advert.",
+    "template": "Dear [Hiring Manager],\n\n[Opening: the role, the company, and why I am writing]\n\n[Strength 1: employer, the work, the outcome]\n\n[Strength 2: employer, the work, the outcome]\n\n[Close: availability and interest]\n\nYours sincerely,\nJordan Sample",
+    "expectedFacts": [
+      "addressed to Priya Anand",
+      "names the Frontend Engineer role at Silverline Freight",
+      "every template slot replaced with real content"
+    ],
+    "forbiddenClaims": ["[Hiring Manager]", "[Opening", "[Strength", "[Close", "Dear Hiring Manager"],
+    "requiredExactStrings": ["Priya Anand", "Silverline Freight"],
+    "requiredTerms": ["Frontend Engineer"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "difficult-001",
+    "category": "hallucination-risk",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "Helped onboard two new team members.",
+    "instructions": "Rewrite this into a single concise, professional CV bullet without adding details not present in the source.",
+    "expectedFacts": ["helped onboard two new team members"],
+    "forbiddenClaims": ["trained the entire engineering team", "created the onboarding programme", "managed the team members"]
+  },
+  {
+    "id": "difficult-002",
+    "category": "difficult-literal-translation",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Hat sich in kurzer Zeit in ein komplett neues Themengebiet eingearbeitet.",
+    "instructions": "Translate and localise this for a senior software engineer CV, avoiding an awkward literal translation of 'sich eingearbeitet'.",
+    "expectedFacts": ["quickly became proficient in a completely new subject area"],
+    "forbiddenClaims": ["became the world's expert", "invented a new field"]
+  }
+]

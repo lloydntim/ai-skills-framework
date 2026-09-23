@@ -1,0 +1,63 @@
+[
+  {
+    "id": "realistic-profile-001",
+    "category": "realistic-cv-section",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "Staff Backend Engineer with 11 years of experience designing and scaling distributed systems across fintech and logistics platforms.\nMy strongest area is event-driven architecture and backend development with Go, Kotlin and distributed data stores, using test-driven development and continuous deployment pipelines (GitHub Actions) to take services from design through production rollout.\nI focus on building resilient infrastructure that helps teams operate reliably at scale.",
+    "instructions": "Translate and localise this CV profile summary for the German market, preserving all technical terms, tools, and the 11 years of experience figure exactly.",
+    "expectedFacts": [
+      "11 years of experience",
+      "event-driven architecture",
+      "backend development with Go, Kotlin and distributed data stores",
+      "uses test-driven development and continuous deployment pipelines with GitHub Actions",
+      "focuses on resilient infrastructure for reliable operation at scale"
+    ],
+    "forbiddenClaims": ["testgetrieben", "kontinuierliche Bereitstellungspipelines", "die unklare Anforderung"],
+    "requiredExactStrings": ["11"],
+    "requiredTerms": ["Test-Driven", "Go", "GitHub Actions", "Event-Driven"],
+    "targetMarket": "Germany"
+  },
+  {
+    "id": "realistic-achievements-001",
+    "category": "realistic-cv-section",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "**SELECTED ACHIEVEMENTS**\n\n**Payments platform migration:** At Solent Analytics, rebuilt a legacy batch settlement system as an event-driven service, taking ownership of the architecture, the data model, the API surface and observability. Checked the new pipeline against roughly 15 downstream consumers and laid the groundwork for real-time reconciliation and fraud detection, using trunk-based development and test-first practices to keep delivery fast.\n\n**Multi-region routing architecture:** At Kestrel Logistics, designed a new event-driven routing layer for the parcel-tracking platform, solving a scalability bottleneck that cut p99 API latency from 900ms to roughly 150-200ms while keeping delivery-SLA guarantees intact and staying backward compatible with legacy carrier integrations — work that became the base for the broader kestrel-logistics.com platform.\n\n**End-to-end platform engineering:** At Harrow Digital, carried a merchant onboarding product from its earliest sketches through to beta, shipping it across desktop and mobile, and picking up backend and infrastructure work along the way. Turned the CTO's product vision and the Design Lead's flows into a working release, checking in regularly with the COO to keep the launch on track.\n\n**Shared services library:** At Fenwick & Vance, built a shared services library adopted across several internal platforms, retiring a set of duplicated legacy implementations in favour of one centrally-owned system. Went on to lead a follow-up services library for fenwickvance.com through to production.\n\n**Ledger platform:** At Meridian Bank, came on as the second engineer on the project and carried an early prototype through to a live ledger-reconciliation platform serving roughly 40-80 internal analysts, putting the Go/Kafka architecture in place as the team scaled from 3 to about 20 people — a design a different department later picked up for its own platform.",
+    "instructions": "Translate and localise this 'Selected Achievements' CV section for the German market, preserving all company names, technologies, numbers, and the bold-label-plus-colon structure of each entry exactly.",
+    "expectedFacts": [
+      "led redesign of a batch settlement system into an event-driven service at Solent Analytics",
+      "improved p99 API latency from 900ms to approximately 150-200ms at Kestrel Logistics",
+      "helped take a merchant onboarding product from early development to beta at Harrow Digital",
+      "helped establish a centrally maintained, reusable services library across multiple internally-facing platforms at Fenwick & Vance",
+      "joined Meridian Bank as the project's second engineer and established the Go/Kafka architecture as the team grew from 3 to approximately 20"
+    ],
+    "forbiddenClaims": [
+      "gemeinsame Servicebibliothek",
+      "geteilte Servicebibliothek",
+      "Mehrregionen-Routing-Architektur",
+      "leitete das gesamte Engineering-Team"
+    ],
+    "requiredExactStrings": ["15", "900", "150", "40-80", "20"],
+    "requiredTerms": ["Solent Analytics", "Kestrel Logistics", "Harrow Digital", "Fenwick & Vance", "Go/Kafka", "Kafka"],
+    "targetMarket": "Germany"
+  },
+  {
+    "id": "realistic-keyskills-001",
+    "category": "realistic-cv-section",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "**PLATFORM ENGINEERING & DELIVERY:** Owning services end to end, from the first design conversation through to production | Weighing reliability, code quality and delivery pace against each other | Growing and maintaining systems across both early-stage startups and larger, established organisations\n\n**BACKEND ARCHITECTURE & REUSABLE SYSTEMS:** Event-driven architecture that scales | Service contracts and shared libraries | Performance tuning, observability and data-store integration | Common foundations reused across teams and regions\n\n**FULL-STACK & CLOUD ENGINEERING:** Designing APIs end to end | Handling authentication, security and how data gets modelled | Building serverless and backend integrations | Running workloads on AWS and Google Cloud | Wiring queues, services and data stores into systems that hold up in production\n\n**TECHNICAL LEADERSHIP & STAKEHOLDER ALIGNMENT:** Bringing clients, product owners, UX designers and solution architects onto the same page | Turning product goals into a technical roadmap | Coaching, running workshops and writing documentation to spread what has been learned",
+    "instructions": "Translate and localise this 'Key Skills' CV section for the German market, preserving the bold-heading-plus-colon structure and the pipe-separated (|) phrase list structure of each line exactly.",
+    "expectedFacts": [
+      "end-to-end service development from definition through production",
+      "scalable event-driven architecture and shared/reusable libraries",
+      "API design, authentication, security, and data modelling",
+      "backend integrations and serverless architectures on AWS and Google Cloud",
+      "works with clients, product owners, designers and architects, and mentors others"
+    ],
+    "forbiddenClaims": ["gemeinsame Bibliotheken", "geteilte Bibliotheken"],
+    "requiredTerms": ["AWS", "Google Cloud", "API"],
+    "targetMarket": "Germany"
+  }
+]

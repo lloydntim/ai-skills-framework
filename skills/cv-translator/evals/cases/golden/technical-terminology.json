@@ -1,0 +1,24 @@
+[
+  {
+    "id": "golden-terminology-001",
+    "category": "technical-terminology",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Entwicklung einer React/TypeScript-Anwendung mit einer Micro-Frontend-Architektur auf Basis von Module Federation.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["built a React/TypeScript application", "used a micro-frontend architecture", "based on Module Federation"],
+    "forbiddenClaims": ["built a Vue application", "built a monolith", "used Webpack Federation"],
+    "requiredTerms": ["React", "TypeScript", "Module Federation"]
+  },
+  {
+    "id": "golden-terminology-002",
+    "category": "technical-terminology",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "Deployed the service to AWS using Terraform and GitHub Actions for CI/CD.",
+    "instructions": "Translate and localise this for a senior software engineer CV targeting the German market.",
+    "expectedFacts": ["deployed to AWS", "used Terraform", "used GitHub Actions for CI/CD"],
+    "forbiddenClaims": ["deployed to Azure", "used Jenkins", "used CloudFormation"],
+    "requiredTerms": ["AWS", "Terraform", "GitHub Actions"]
+  }
+]

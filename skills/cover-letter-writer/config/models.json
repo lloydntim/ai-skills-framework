@@ -1,0 +1,7 @@
+{
+  "generator": { "provider": "anthropic", "model": "claude-sonnet-5" },
+  "validator": { "provider": "anthropic", "model": "claude-sonnet-5" },
+  "reviser": { "provider": "anthropic", "model": "claude-sonnet-5" },
+  "evaluator": { "provider": "anthropic", "model": "claude-opus-5" },
+  "pairwiseJudge": { "provider": "anthropic", "model": "claude-opus-5" }
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "public-benchmark-partial-match-001",
+    "category": "partial-match",
+    "language": "en",
+    "cvText": "FABRIKAM ENERGY  Leipzig, Germany | Jan 2023 - Present\nFrontend Engineer\n- Helped consolidate three separate form implementations into one shared component library, adopted across four product teams.\n- Paired with the design team on the visual system.\nStack: React, TypeScript, Storybook, Vitest.",
+    "roleDescription": "Frontend Engineer, Casterbridge Media. React and TypeScript required. Nice-to-have: GraphQL and Node.js backend work.",
+    "instructions": "Write a tailored cover letter. The CV has no GraphQL or backend experience - address the gap honestly rather than claiming it or hiding it.",
+    "expectedFacts": ["strong match on React and TypeScript", "no GraphQL or backend experience claimed"],
+    "forbiddenClaims": ["experience with GraphQL", "backend development experience"],
+    "allowedTechnologies": ["GraphQL", "Node.js"],
+    "requiredExactStrings": ["Casterbridge Media"],
+    "requiredTerms": ["Casterbridge Media", "React"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

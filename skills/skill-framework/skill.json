@@ -1,0 +1,9 @@
+{
+  "name": "skill-framework",
+  "version": "1.0.0",
+  "description": "Structures a model skill so its quality can be measured and its regressions caught. Used when creating, restructuring or evaluating any skill in this repository.",
+  "domain": "skills",
+  "prompts": {},
+  "datasets": {},
+  "export": { "exclude": [] }
+}

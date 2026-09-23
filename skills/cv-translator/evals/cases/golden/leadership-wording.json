@@ -1,0 +1,32 @@
+[
+  {
+    "id": "golden-leadership-001",
+    "category": "leadership-wording",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "Worked with the architect to define the frontend architecture.",
+    "instructions": "Rewrite this CV bullet to sound more professional and concise, for a senior software engineer CV.",
+    "expectedFacts": ["collaborated on defining frontend architecture", "worked alongside an architect"],
+    "forbiddenClaims": ["led the frontend architecture", "owned the frontend architecture", "solely designed the frontend architecture", "managed the architect"]
+  },
+  {
+    "id": "golden-leadership-002",
+    "category": "leadership-wording",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "Supported the migration of the legacy monolith to microservices.",
+    "instructions": "Rewrite this CV bullet to sound more professional and concise, for a senior software engineer CV.",
+    "expectedFacts": ["supported the microservices migration"],
+    "forbiddenClaims": ["led the migration", "managed the migration", "owned the microservices architecture"]
+  },
+  {
+    "id": "golden-leadership-003",
+    "category": "leadership-wording",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Habe zur Konzeption der CI/CD-Pipeline beigetragen.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["contributed to the design of the CI/CD pipeline"],
+    "forbiddenClaims": ["led the CI/CD pipeline design", "owned the CI/CD pipeline", "managed the CI/CD pipeline"]
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "name": "skills",
+  "private": true,
+  "packageManager": "pnpm@12.4.1",
+  "scripts": {
+    "test": "pnpm test:scripts && pnpm -r --workspace-concurrency=1 test",
+    "typecheck": "pnpm -r typecheck",
+    "export-skill": "tsx scripts/export-skill.ts",
+    "framework:validate": "pnpm --filter skill-framework validate",
+    "test:scripts": "vitest run scripts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "dotenv": "^16.4.5",
+    "zod": "^4.6.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.7"
+  }
+}

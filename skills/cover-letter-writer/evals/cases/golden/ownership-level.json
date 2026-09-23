@@ -1,0 +1,20 @@
+[
+  {
+    "id": "public-golden-ownership-001",
+    "category": "ownership-level",
+    "language": "en",
+    "cvText": "FABRIKAM ENERGY  Leipzig, Germany | Jan 2023 - Present\nFrontend Engineer\nEnergy-sector SaaS company building a customer billing portal.\n- Helped consolidate three separate form implementations into one shared component library, adopted across four product teams.\n- Contributed to the checkout rewrite, focusing on the payment-step validation logic.\n- Paired with the design team to align the component library with the new visual system.\nStack: React, TypeScript, Storybook, Vitest.",
+    "roleDescription": "Frontend Engineer, Meridian Outfitters (remote). Looking for someone who has led major frontend rewrites end to end.",
+    "instructions": "Write a tailored cover letter for this role, grounded only in the CV. The advert is fishing for a rewrite 'lead' - do not upgrade what the candidate actually did.",
+    "expectedFacts": [
+      "helped consolidate three separate form implementations into one shared component library at Fabrikam Energy",
+      "contributed to the checkout rewrite rather than leading it"
+    ],
+    "forbiddenClaims": ["led the checkout rewrite", "built the component library single-handedly", "led the frontend rewrite"],
+    "requiredExactStrings": ["Fabrikam Energy"],
+    "requiredTerms": ["Fabrikam Energy", "React"],
+    "minWords": 230,
+    "maxWords": 400,
+    "templateLanguage": "en"
+  }
+]

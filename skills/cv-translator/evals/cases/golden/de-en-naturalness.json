@@ -1,0 +1,23 @@
+[
+  {
+    "id": "golden-de-en-naturalness-001",
+    "category": "de-en-naturalness",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Verantwortlich für die Konzeption und Umsetzung einer skalierbaren Frontend-Architektur für eine Plattform mit mehr als 2 Millionen monatlichen Nutzern.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["responsible for designing and implementing a scalable frontend architecture", "platform has more than 2 million monthly users"],
+    "forbiddenClaims": ["managed the engineering department", "increased revenue"],
+    "requiredExactStrings": ["2 million"]
+  },
+  {
+    "id": "golden-de-en-naturalness-002",
+    "category": "de-en-naturalness",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Zuständig für die Betreuung und Weiterentwicklung interner Entwicklungswerkzeuge.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["responsible for maintaining and evolving internal developer tools"],
+    "forbiddenClaims": ["created all internal developer tools from scratch"]
+  }
+]

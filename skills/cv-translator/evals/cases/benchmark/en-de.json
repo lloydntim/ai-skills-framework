@@ -1,0 +1,34 @@
+[
+  {
+    "id": "en-de-001",
+    "category": "leadership-wording",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "Led a team of three engineers to deliver a new checkout experience.",
+    "instructions": "Translate and localise this for a senior software engineer CV targeting the German market.",
+    "expectedFacts": ["leitete ein Team von drei Entwicklern", "lieferte ein neues Checkout-Erlebnis"],
+    "forbiddenClaims": ["leitete die gesamte Abteilung"],
+    "requiredExactStrings": ["drei"]
+  },
+  {
+    "id": "en-de-002",
+    "category": "terminology-preservation",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "Built a GraphQL API on top of a Node.js and PostgreSQL stack.",
+    "instructions": "Translate and localise this for a senior software engineer CV targeting the German market.",
+    "expectedFacts": ["entwickelte eine GraphQL-API", "basierend auf Node.js und PostgreSQL"],
+    "forbiddenClaims": ["built a REST API only", "used MySQL"],
+    "requiredTerms": ["GraphQL", "Node.js", "PostgreSQL"]
+  },
+  {
+    "id": "en-de-003",
+    "category": "localisation",
+    "sourceLanguage": "en",
+    "targetLanguage": "de",
+    "input": "Managed stakeholder communication with product and design throughout the project.",
+    "instructions": "Translate and localise this for a senior software engineer CV targeting German CV conventions (concise, fact-based, no first-person pronouns).",
+    "expectedFacts": ["managed communication with product and design stakeholders"],
+    "forbiddenClaims": ["managed the product and design teams"]
+  }
+]

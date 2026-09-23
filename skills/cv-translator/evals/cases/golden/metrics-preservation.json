@@ -1,0 +1,24 @@
+[
+  {
+    "id": "golden-metrics-001",
+    "category": "metrics-preservation",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "Improved Lighthouse performance from approximately 75 to 85-90+.",
+    "instructions": "Rewrite this CV bullet to sound more professional and concise, for a senior software engineer CV.",
+    "expectedFacts": ["Lighthouse performance improved from around 75 to 85-90 or higher"],
+    "forbiddenClaims": ["improved performance by 50%", "doubled performance", "improved performance by 100%"],
+    "requiredExactStrings": ["75", "85"]
+  },
+  {
+    "id": "golden-metrics-002",
+    "category": "metrics-preservation",
+    "sourceLanguage": "de",
+    "targetLanguage": "en-GB",
+    "input": "Reduzierte die durchschnittliche API-Antwortzeit von 800ms auf unter 200ms.",
+    "instructions": "Translate and localise this for a senior software engineer CV.",
+    "expectedFacts": ["reduced average API response time from 800ms to under 200ms"],
+    "forbiddenClaims": ["reduced API response time by 90%", "eliminated API latency"],
+    "requiredExactStrings": ["800", "200"]
+  }
+]

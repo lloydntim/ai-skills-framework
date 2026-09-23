@@ -1,0 +1,32 @@
+[
+  {
+    "id": "cv-rewrite-001",
+    "category": "concise-rewriting",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "I was basically the person who did most of the work on making our website faster, I looked into a bunch of different things like image sizes and caching and stuff like that.",
+    "instructions": "Rewrite this into a single concise, professional CV bullet.",
+    "expectedFacts": ["improved website performance", "investigated image optimisation and caching"],
+    "forbiddenClaims": ["was the only person who worked on performance"]
+  },
+  {
+    "id": "cv-rewrite-002",
+    "category": "professional-wording",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "Did the coding for the new user profile page and fixed some bugs in it.",
+    "instructions": "Rewrite this into a single concise, professional CV bullet.",
+    "expectedFacts": ["implemented the new user profile page", "fixed defects in it"],
+    "forbiddenClaims": ["designed the entire user experience strategy"]
+  },
+  {
+    "id": "cv-rewrite-003",
+    "category": "seniority-preservation",
+    "sourceLanguage": "en",
+    "targetLanguage": "en-GB",
+    "input": "As a mid-level engineer, I contributed test coverage to the checkout module under the guidance of a senior engineer.",
+    "instructions": "Rewrite this into a single concise, professional CV bullet without inflating seniority.",
+    "expectedFacts": ["contributed test coverage to the checkout module", "worked under guidance of a senior engineer"],
+    "forbiddenClaims": ["led the checkout module testing strategy", "acted as the senior engineer on the project"]
+  }
+]
