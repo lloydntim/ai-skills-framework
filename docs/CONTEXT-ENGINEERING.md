@@ -91,27 +91,15 @@ configuration. What the experiment established is not "selection does not work" 
 on this prompt, bought a 10% saving and cost reliability" — and this repository already holds that
 reliability outweighs a small context saving.
 
-## 3. Known development issue
+## 3. Dataset resolution in a checkout without private material
 
-`framework/manifest/versions.ts` (`snapshotVersions`) reads a skill's dataset directory straight
-from `skill.json`. It does not use the public/private fallback that
-`skills/cover-letter-writer/evals/cases-loader.ts` applies, which prefers a private `reference/evals/`
-directory where one is mounted and falls back to the public synthetic cases otherwise.
+`framework/manifest/versions.ts` (`snapshotVersions`) used to read a skill's dataset directory
+straight from `skill.json`, without the public/private fallback the case loader applied, so a paid
+Cover Letter Writer eval run from a public checkout failed at startup with `ENOENT` on the private
+`reference/evals/` path it does not have.
 
-Cover Letter Writer's `skill.json` points its two datasets at `reference/evals/`, which a public
-checkout does not have, so `snapshotVersions` throws `ENOENT` there. It fails closed rather than
-recording a snapshot that does not match the cases actually loaded, which is the better of the two
-failure modes but is still a failure.
-
-What this does and does not affect:
-
-| | Status in a public checkout |
-|---|---|
-| `pnpm test`, `pnpm typecheck`, `pnpm framework:validate` | Unaffected. `checkSkillPackage` already treats an absent `reference/` dataset as a supported environment condition and skips it |
-| Anything that does not call a model | Unaffected |
-| cv-translator and skill-framework, paid or free | Unaffected — their datasets are already public paths |
-| A **paid** Cover Letter Writer eval run | Fails at startup with `ENOENT` on `reference/evals/benchmark` |
-
-The fix is to give `snapshotVersions` the same fallback the case loader has, so the version snapshot
-describes the cases that were actually loaded. Until then, paid eval runs are not supported for
-Cover Letter Writer from a public checkout.
+`snapshotVersions` now resolves through the same `resolveDatasetDir` fallback as everything else
+that reads a dataset, so a public checkout hashes and validates the cases an eval run actually
+loads instead of failing closed on the private path. See "Datasets in a checkout without private
+material" in `docs/ARCHITECTURE.md` for the mechanism and how the chosen source is recorded on the
+run.

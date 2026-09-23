@@ -119,8 +119,9 @@ subject: what each call actually needs to see, and the measured experiment that 
 
 ## Evaluation fixtures
 
-**Every eval fixture in this repository is synthetic.** cv-translator's twelve cases are invented CV
-text. Cover Letter Writer's twelve cases — seven golden, five benchmark — are built on the fictional
+**Every eval fixture in this repository is synthetic.** cv-translator's twenty-nine cases — fourteen
+golden, fifteen benchmark — are invented CV text. Cover Letter Writer's twelve cases — seven golden,
+five benchmark — are built on the fictional
 candidate in `candidate-profile.example.md`, and each reproduces the property its private
 counterpart exists to test: ownership level not promoted, no technology absent from the CV, every
 metric already present in it, a gap addressed rather than hidden, no template placeholder surviving,
@@ -136,9 +137,6 @@ against a real CV. What it does not lose is coverage: every property survives th
 One consequence, stated plainly: Cover Letter Writer's public case set has **no approved baseline**,
 because approving one costs a paid run. `pnpm eval:regression` will run the cases and report scores;
 it has nothing to compare them against until a baseline is approved here.
-
-See [docs/CONTEXT-ENGINEERING.md](docs/CONTEXT-ENGINEERING.md#3-known-development-issue) for a known
-issue affecting paid eval runs started from a public checkout. It does not affect the free suite.
 
 Which model answers for each role, how hard it reasons and the output budget it has are all in that
 skill's `config/models.json`. The settings are role-aware — the role writing the output is not

@@ -74,8 +74,8 @@ Everything under **Free** touches no network and needs no API key.
 ```
 pnpm install
 pnpm typecheck                              # type-check the whole project
-pnpm test                                        # 523 tests, FakeModelProvider only — see below
-ppnpm test:watch
+pnpm test                                        # 441 tests, FakeModelProvider only — see below
+pnpm test:watch
 pnpm build:skill                            # install as a Claude skill + /cover-letter-writer command
 pnpm build:cv -- --pdf "reference/cv/<file>.pdf" --out reference/cv.md --label "English CV"
 pnpm context:sizes                          # how much of SKILL.md each letter is sent (sizes only)
@@ -116,11 +116,11 @@ pnpm eval:compare -- --allow-incompatible=true
 pnpm eval:approve                             # lock this run in as the new baseline
 ```
 
-`pnpm test` never instantiates `AnthropicProvider` (`src/provider/anthropic-provider.ts`) — every
+`pnpm test` never instantiates `AnthropicProvider` (`framework/provider/anthropic-provider.ts`) — every
 unit test that needs a `ModelProvider` constructs `FakeModelProvider`
 (`src/test-support/fake-model-provider.ts`) instead, a scripted in-memory stand-in with no network
 access. `AnthropicProvider` is the **only** file in this project that imports the Anthropic SDK or
-makes an HTTP request; every paid command above reaches it only through `src/provider/registry.ts`
+makes an HTTP request; every paid command above reaches it only through `framework/provider/registry.ts`
 (`resolveModelRoles`), never directly. See "Model roles, provider selection and where API calls
 happen" below for the full path.
 
@@ -365,7 +365,7 @@ against a zod schema (`evals/evaluator-schema.ts`) before any score is trusted �
 is an error, never a defaulted score.
 
 Generator and evaluator are configured independently, along with every other framework role
-(semantic validator, reviser), via `config/models.json` — see `src/provider/model-roles.ts`. Point
+(semantic validator, reviser), via `config/models.json` — see `framework/provider/model-roles.ts`. Point
 `--models-config` at a different file (e.g. `config/models.haiku.json`) to run the identical
 benchmark against a different provider/model per role. See "Model roles, provider selection and
 where API calls happen" below for the full picture.
@@ -373,22 +373,22 @@ where API calls happen" below for the full picture.
 ### Model roles, provider selection and where API calls happen
 
 Every point in the system that makes its own model call is a named **role**, not "the model":
-`generator`, `validator`, `reviser`, `evaluator`, `pairwiseJudge` (`src/provider/model-roles.ts`).
+`generator`, `validator`, `reviser`, `evaluator`, `pairwiseJudge` (`framework/provider/model-roles.ts`).
 `validator` is named that, not just `validator`, because this project also has a
 deterministic, non-model checker (`src/deterministic-checks.ts`) and the two must never be confused.
 Each role resolves independently to its own provider + model via `config/models.json`:
 
 ```json
 {
-  "generator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "validator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "reviser": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "evaluator": { "provider": "anthropic", "model": "claude-opus-5" },
-  "pairwiseJudge": { "provider": "anthropic", "model": "claude-opus-5" }
+  "generator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "high", "maxOutputTokens": 16000 },
+  "validator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "reviser": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "high", "maxOutputTokens": 16000 },
+  "evaluator": { "provider": "anthropic", "model": "claude-opus-5", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "pairwiseJudge": { "provider": "anthropic", "model": "claude-opus-5", "reasoning": "medium", "maxOutputTokens": 8000 }
 }
 ```
 
-`src/provider/registry.ts`'s `resolveModelRoles` validates this at load time and fails clearly on a
+`framework/provider/registry.ts`'s `resolveModelRoles` validates this at load time and fails clearly on a
 missing role, an unknown provider, or a malformed entry — nothing is silently defaulted. Providers
 are instantiated at most once per distinct provider name and shared across every role that names it.
 `config/models.haiku.json` swaps `generator`/`validator`/`reviser` to Haiku while keeping
@@ -396,11 +396,11 @@ are instantiated at most once per distinct provider name and shared across every
 scored. Point any paid command at it with `--models-config=config/models.haiku.json`, or pass your
 own file following the same shape.
 
-**Where the actual network call happens:** `src/provider/anthropic-provider.ts` is the only file in
+**Where the actual network call happens:** `framework/provider/anthropic-provider.ts` is the only file in
 this project that imports the Anthropic SDK (`@anthropic-ai/sdk`) or makes an HTTP request. Every
 other file — the runtime (`src/runtime/`), the eval framework (`evals/`), and every script —
-depends only on the `ModelProvider` interface (`src/provider/types.ts`) plus a role's resolved model
-string, never on a concrete provider class. `src/provider/registry.ts` is the only place
+depends only on the `ModelProvider` interface (`framework/provider/types.ts`) plus a role's resolved model
+string, never on a concrete provider class. `framework/provider/registry.ts` is the only place
 `AnthropicProvider` is named. Concretely, a real call happens only when one of the **Paid** commands
 above runs `loadModelRoles()` → `resolveModelRoles()` → `new AnthropicProvider()` → `.generate()`.
 
@@ -423,7 +423,7 @@ generate`'s stderr output prints the same role/model/token/cost information for 
 `src/test-support/uniform-roles.ts`'s `makeUniformRoles`, which builds a full `ResolvedModelRoles`
 map pointing every role at the same fake instance — and pass it straight to `runProductionSkill` or
 another runtime function, never touching `resolveModelRoles` at all. The registry's own tests
-(`src/provider/registry.test.ts`) instead pass `resolveModelRoles` a `{ fake: () => new
+(`framework/provider/registry.test.ts`) instead pass `resolveModelRoles` a `{ fake: () => new
 FakeProvider() }` factory map, to test the resolution/validation logic itself. Either way,
 `AnthropicProvider` is never constructed and `ANTHROPIC_API_KEY` is never read. `FakeModelProvider`
 is a scripted in-memory stand-in: `queueResponse()`/`queueError()` load a FIFO queue of results, and

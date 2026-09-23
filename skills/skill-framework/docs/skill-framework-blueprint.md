@@ -218,11 +218,11 @@ field the provider did not report must stay absent rather than being invented (s
 Each role resolves independently to its own provider and model (`config/models.json`), so a cheap
 model can validate while an expensive one judges, or generation can run on one provider while
 evaluation runs on another. Production code and the offline eval framework never see a concrete
-provider class, only a role's resolved `ModelProvider` plus a model string. `src/provider/registry.ts`
+provider class, only a role's resolved `ModelProvider` plus a model string. `framework/provider/registry.ts`
 is the only place a concrete provider is named, so adding a second provider is one more entry
 there and nothing else changes.
 
-**Keep SDK-specific code inside provider adapters, and nowhere else.** `src/provider/anthropic-provider.ts`
+**Keep SDK-specific code inside provider adapters, and nowhere else.** `framework/provider/anthropic-provider.ts`
 is the only file in this project that imports `@anthropic-ai/sdk`. It is also the only place that
 translates a provider's own response shape (Anthropic's `response.usage`, its cache and thinking
 token fields) into the generic `TokenUsage` shape everything else reads. A second provider adapter
@@ -482,7 +482,7 @@ implies, usually a WARNING, sometimes an INCOMPATIBLE, never a silent pass.
 Every point where the system makes its own call to a model is a candidate row in a usage ledger:
 the first generation, semantic validation, a revision, a revalidation, single-output evaluation,
 pairwise evaluation. In this project these are exactly the tagged request types
-(`src/provider/request-metadata.ts`), plus `unclassified` for any call site that forgot to tag
+(`framework/provider/request-metadata.ts`), plus `unclassified` for any call site that forgot to tag
 itself, so an untagged call shows up as a visible row instead of vanishing from the totals.
 
 **Record, for each attempt:**

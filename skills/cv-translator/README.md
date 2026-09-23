@@ -28,19 +28,28 @@ its own provider + model via `config/models.json`:
 
 ```json
 {
-  "generator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "validator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "reviser": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "evaluator": { "provider": "anthropic", "model": "claude-sonnet-5" },
-  "pairwiseJudge": { "provider": "anthropic", "model": "claude-sonnet-5" }
+  "generator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "high", "maxOutputTokens": 16000 },
+  "validator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "reviser": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "high", "maxOutputTokens": 16000 },
+  "evaluator": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 },
+  "pairwiseJudge": { "provider": "anthropic", "model": "claude-sonnet-5", "reasoning": "medium", "maxOutputTokens": 8000 }
 }
 ```
 
-This is validated at load time (`src/provider/registry.ts`) and fails clearly on a missing role, an
-unknown provider, or a malformed entry — nothing is silently defaulted. `src/provider/model-roles.ts`
+This is validated at load time (`framework/provider/registry.ts`) and fails clearly on a missing role, an
+unknown provider, or a malformed entry — nothing is silently defaulted. `framework/provider/model-roles.ts`
 and `registry.ts` are the only places a concrete provider class is named; production code
 (`src/runtime/`) and the eval framework (`evals/`) only ever see the `ModelProvider` interface plus
 a role's resolved model string.
+
+**Runtime configuration** is split by what a setting is a property of. `src/runtime/runtime-config.json`
+holds what is about this skill's pipeline: `temperature`, `maxRevisionAttempts`, and the `thresholds`
+each validation score must clear. `config/models.json` holds what is about a role and its model: the
+provider, the model, how hard that role reasons (`reasoning`) and the output budget it reasons and
+answers within (`maxOutputTokens`) — the two are chosen together, since the model spends one budget
+on both. No file in this skill names a provider's own thinking parameters; the ladder is
+provider-neutral and `framework/provider/anthropic-provider.ts` translates it. See
+`docs/ARCHITECTURE.md`, "Runtime configuration".
 
 **Running an experiment matrix without touching source**: pass `--models-config=<path>` to
 `pnpm eval`, `pnpm eval:regression`, or `pnpm translate` to point at a different file
@@ -71,7 +80,7 @@ only in `config/models.json` (or whatever `--models-config=` points at).
 
 Every `ModelProvider.generate()` call returns real usage from the Anthropic API response (`response.usage`), never an LLM's self-estimate. `evals/token-tracker.ts` aggregates this per variant/category/case, and `src/runtime/index.ts` sums usage across all revision passes so you can see exactly how many extra tokens self-review costs.
 
-Prices live in `config/pricing.json` (US dollars per million input/output tokens), so adding a model or correcting a price needs no code change. `src/provider/pricing.ts` is the only place that reads them: the provider uses it to cost one call, and the matrix summary uses it to cost a whole run, so the two cannot disagree. A model with no entry reports no cost rather than a cost of zero.
+Prices live in `framework/config/pricing.json` (US dollars per million input/output tokens), shared across skills, so adding a model or correcting a price needs no code change. `framework/provider/pricing.ts` is the only place that reads them: the provider uses it to cost one call, and the matrix summary uses it to cost a whole run, so the two cannot disagree. A model with no entry reports no cost rather than a cost of zero.
 
 ### Where the tokens actually go
 
@@ -83,7 +92,7 @@ validation pass, a revision, or the judge.
 Every request the runtime and eval code make is tagged with what it's for: `initial-generation`,
 `semantic-validation`, `revision`, `revalidation`, `evaluator`, `pairwise-judge`, or
 `unclassified` for any future call site that forgets to tag itself — it appears in the report rather
-than silently vanishing from the totals. `src/provider/instrumentation.ts` wraps a provider to record
+than silently vanishing from the totals. `framework/provider/instrumentation.ts` wraps a provider to record
 this; the wrapping changes nothing about the request sent or the result returned; it only observes.
 
 ```bash
