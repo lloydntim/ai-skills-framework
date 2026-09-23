@@ -57,7 +57,7 @@ export async function evaluatePairwise(
     userPrompt: prompt,
     model: config.model,
     temperature: config.temperature,
-    maxOutputTokens: 2000,
+    maxOutputTokens: 4000,
     metadata: { requestType: 'pairwise-judge', components },
   });
 

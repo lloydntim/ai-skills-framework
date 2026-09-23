@@ -1,6 +1,6 @@
 {
   "temperature": 0.3,
-  "maxOutputTokens": 4000,
+  "maxOutputTokens": 8000,
   "maxRevisionAttempts": 3,
   "thresholds": {
     "factualGrounding": 5,
