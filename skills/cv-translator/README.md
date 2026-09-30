@@ -4,7 +4,7 @@
 
 Two things live in this repo:
 
-1. **The production skill** (`SKILL.md` + `src/runtime/`) — a small pipeline that translates/localises/rewrites CV text: generate a draft with the skill's instructions as the system prompt, validate it against hard and soft guardrails, and (if needed) run up to `maxRevisionAttempts` (default 5) targeted revisions before returning a final answer.
+1. **The production skill** (`SKILL.md` + `src/runtime/`) — a small pipeline that translates/localises/rewrites CV text: generate a draft with the skill's instructions as the system prompt, validate it against hard and soft guardrails, and (if needed) run up to `maxRevisionAttempts` (default 5) targeted revisions before returning a final answer. The loop itself is the shared runtime's (`framework/runtime/`, see `docs/RUNTIME.md`); this skill supplies the steps in `src/runtime/skill.ts`.
 2. **The offline evaluation framework** (`evals/`) — a separate tool that answers "is this skill actually better than the base model, and did a recent change break anything?" by running fixed benchmark/golden cases through multiple configurations and scoring them with a blind LLM judge plus mechanical checks.
 
 **These are not the same thing.** Runtime validation decides "is this one output good enough to return to a user, right now." Offline evaluation decides "is this skill, as a whole, actually an improvement, and is it safe to ship." The runtime validator is never used as the sole judge of whether the skill works — that's what `evals/` is for.
@@ -43,7 +43,7 @@ and `registry.ts` are the only places a concrete provider class is named; produc
 a role's resolved model string.
 
 **Runtime configuration** is split by what a setting is a property of. `src/runtime/runtime-config.json`
-holds what is about this skill's pipeline: `temperature`, `maxRevisionAttempts`, and the `thresholds`
+holds what is about this skill's pipeline: `temperature`, `maxRevisionAttempts` (passed to the shared runtime as this run's revision cap), and the `thresholds`
 each validation score must clear. `config/models.json` holds what is about a role and its model: the
 provider, the model, how hard that role reasons (`reasoning`) and the output budget it reasons and
 answers within (`maxOutputTokens`) — the two are chosen together, since the model spends one budget
@@ -122,6 +122,22 @@ read them as tokens.
 
 This instrumentation is purely observational: nothing about a request or a response changes because
 of it, and it makes no additional API calls.
+
+## What each call sees
+
+Running through the shared runtime did not change any prompt: the steps are the same functions with the
+same arguments. Each call is sent only what its job needs.
+
+| Call | System prompt | User prompt | Checked by |
+|---|---|---|---|
+| Generation | `SKILL.md` | languages, market, instructions, the source text | `instrumentation-integration.test.ts` (`generateDraft` components); `skill.test.ts` (components on the trace) |
+| Validation | the validator's own rubric, never `SKILL.md` | source, instructions, the draft, target language | `instrumentation-integration.test.ts` (validator components) |
+| Revision | `SKILL.md` | the generation prompt, the previous draft, the list of failures (not the whole validation) | `instrumentation-integration.test.ts` (`reviseDraft` components) |
+
+Nothing about a real person is in `SKILL.md`, the prompts or the tracked cases; the input arrives with
+each request. A run's trace (`--trace=true` writes it to `data/traces/runs.jsonl`, which git ignores)
+holds the size of each part in characters and none of the text, and `framework/runtime/privacy.test.ts`
+checks that.
 
 ## Guardrails
 

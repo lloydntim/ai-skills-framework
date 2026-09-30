@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LlmResponseValidationError } from '@skills/framework/llm-json-response';
 import { SingleResponseProvider } from '@skills/framework/testing/single-response-provider';
 import type { CvTaskInput, RuntimeConfig } from './types';
-import { validateDraft } from './validator';
+import { validateDraft, validateDraftWithSources } from './validator';
 
 const MODEL = 'fake-model';
 
@@ -94,5 +94,30 @@ describe('validateDraft — semantic validator response hardening', () => {
     const provider = judgeSaid({ ...VALID_JUDGE_RESPONSE, unsupportedClaims: 'none' });
 
     await expect(validateDraft(input, 'A draft.', provider, MODEL, config)).rejects.toThrow(LlmResponseValidationError);
+  });
+});
+
+describe('validateDraftWithSources', () => {
+  it('reports which layer raised each guardrail failure, beside a result that has no provenance field', async () => {
+    const provider = judgeSaid({ ...VALID_JUDGE_RESPONSE, hardGuardrailFailures: ['invented employer'] });
+
+    const { result, sources } = await validateDraftWithSources(
+      { ...input, requiredTerms: ['Northwind'] },
+      'A draft.',
+      provider,
+      MODEL,
+      config
+    );
+
+    expect(sources).toEqual({ deterministic: ['missing required term: "Northwind"'], judge: ['invented employer'] });
+    expect(result.hardGuardrailFailures).toEqual([...sources.deterministic, ...sources.judge]);
+    expect('judgeHardGuardrailFailures' in result).toBe(false);
+  });
+
+  it('is the same result validateDraft returns', async () => {
+    const make = () => judgeSaid({ ...VALID_JUDGE_RESPONSE, faithfulness: 2 });
+    const plain = await validateDraft(input, 'A draft.', make(), MODEL, config);
+    const detailed = await validateDraftWithSources(input, 'A draft.', make(), MODEL, config);
+    expect(detailed.result).toEqual(plain);
   });
 });
