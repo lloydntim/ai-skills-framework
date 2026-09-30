@@ -3,9 +3,10 @@ import type { GenerationResult, ModelProvider } from '@skills/framework/provider
 import { renderTemplate } from '@skills/framework/prompts/prompt-file';
 import { reviserPrompt } from '../prompts';
 import { buildUserPrompt, caseInputChars, skillSystemPrompt } from './generate';
+import type { DeterministicCheckResult } from '../deterministic-checks';
 import type { CoverLetterTaskInput, RuntimeConfig, SemanticDimension, ValidationResult } from './types';
 
-const DIMENSION_LABELS: Record<SemanticDimension, string> = {
+export const DIMENSION_LABELS: Record<SemanticDimension, string> = {
   factualGrounding: 'low factual-grounding score — a claim in the letter is not actually true of the CV, or overstates ownership level',
   jobRelevance: 'low job-relevance score — the letter does not answer what this specific advert asked for',
   professionalTone: 'low professional-tone score — the register is wrong for this advert/market',
@@ -14,27 +15,44 @@ const DIMENSION_LABELS: Record<SemanticDimension, string> = {
   overall: 'low overall quality score',
 };
 
+/** One unmet deterministic rule: a fixed `code` (an identifier, safe to record) and the instruction the reviser is given. */
+export interface DeterministicIssue {
+  code: string;
+  message: string;
+}
+
+/**
+ * Every rule of the deterministic layer that fails a letter outright, in the order the reviser is
+ * told about them. These are exactly the conditions deterministic-checks.ts folds into `pass`; word
+ * count, clichés and repeated openers are soft and never appear here. The one place that names them,
+ * so the reviser's instructions and the runtime's issue codes cannot disagree.
+ */
+export function deterministicIssues(d: DeterministicCheckResult): DeterministicIssue[] {
+  const issues: DeterministicIssue[] = [];
+  const add = (code: string, items: string[], message: (item: string) => string) => {
+    for (const item of items) issues.push({ code, message: message(item) });
+  };
+  add('missing-exact-string', d.missingExactStrings, (s) => `missing required exact text: "${s}"`);
+  add('missing-required-group', d.missingRequiredGroups, (g) => `missing required text (any one of): ${g}`);
+  add('missing-term', d.missingTerms, (t) => `missing required term: "${t}"`);
+  add('forbidden-claim', d.matchedForbiddenClaims, (c) => `remove forbidden claim: "${c}"`);
+  add('forbidden-character', d.matchedForbiddenCharacters, (c) => `remove forbidden character: "${c}"`);
+  add('unfilled-placeholder', d.unfilledPlaceholders, (p) => `fill in the placeholder: "${p}"`);
+  add('unsupported-technology', d.unsupportedTechnologies, (t) => `remove or justify technology not in the CV: "${t}"`);
+  add('unsupported-number', d.unsupportedNumbers, (n) => `remove or justify number not in the CV: "${n}"`);
+  add('phrase-without-cv-support', d.phrasesWithoutCvSupport, (id) => `remove standard phrase not supported by this CV: "${id}"`);
+  add('unoffered-preference', d.unofferedPreferences, (id) => `remove claim about a benefit this advert never offered: "${id}"`);
+  add('missing-letter-structure', d.missingLetterStructure, (s) => `add missing house-format marker (any one of): ${s}`);
+  return issues;
+}
+
 /** Turns one ValidationResult into the exact, itemised list of problems a reviser must fix — nothing vaguer than that. */
 export function describeFailures(validation: ValidationResult): string[] {
-  const deterministicIssues: string[] = [];
-  const d = validation.deterministic;
-  for (const s of d.missingExactStrings) deterministicIssues.push(`missing required exact text: "${s}"`);
-  for (const g of d.missingRequiredGroups) deterministicIssues.push(`missing required text (any one of): ${g}`);
-  for (const t of d.missingTerms) deterministicIssues.push(`missing required term: "${t}"`);
-  for (const c of d.matchedForbiddenClaims) deterministicIssues.push(`remove forbidden claim: "${c}"`);
-  for (const c of d.matchedForbiddenCharacters) deterministicIssues.push(`remove forbidden character: "${c}"`);
-  for (const p of d.unfilledPlaceholders) deterministicIssues.push(`fill in the placeholder: "${p}"`);
-  for (const t of d.unsupportedTechnologies) deterministicIssues.push(`remove or justify technology not in the CV: "${t}"`);
-  for (const n of d.unsupportedNumbers) deterministicIssues.push(`remove or justify number not in the CV: "${n}"`);
-  for (const id of d.phrasesWithoutCvSupport) deterministicIssues.push(`remove standard phrase not supported by this CV: "${id}"`);
-  for (const id of d.unofferedPreferences) deterministicIssues.push(`remove claim about a benefit this advert never offered: "${id}"`);
-  for (const s of d.missingLetterStructure) deterministicIssues.push(`add missing house-format marker (any one of): ${s}`);
-
+  const deterministic = deterministicIssues(validation.deterministic).map((issue) => issue.message);
   const judgeIssues = validation.judgeHardGuardrailFailures;
-
   const dimensionIssues = validation.failingCriteria.map((dimension) => DIMENSION_LABELS[dimension]);
 
-  return [...deterministicIssues, ...judgeIssues, ...dimensionIssues];
+  return [...deterministic, ...judgeIssues, ...dimensionIssues];
 }
 
 /** Sends the reviser role the previous draft and the exact failed criteria, asking it to change only what is needed. */

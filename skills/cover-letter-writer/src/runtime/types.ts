@@ -1,6 +1,7 @@
 import type { DeterministicCheckResult } from '../deterministic-checks';
 import type { ModelRole } from '@skills/framework/provider/model-roles';
 import type { TokenUsage } from '@skills/framework/provider/types';
+import type { RunTrace } from '@skills/framework/runtime/trace';
 import type { Market } from '../markets';
 import type { LetterLanguage } from '../templates';
 import type { SkillContext } from '../skill-sections';
@@ -106,4 +107,6 @@ export interface ProductionResult {
   totalCost?: number;
   /** Same totals, broken down per role. A role never called in this run reports zeroed usage. */
   usageByRole: Record<ModelRole, RoleUsage>;
+  /** The shared runtime's record of this run: states, calls, tokens, cost and outcome. Holds no text. */
+  trace: RunTrace;
 }

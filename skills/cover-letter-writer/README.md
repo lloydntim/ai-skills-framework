@@ -40,9 +40,9 @@ This follows the skill-builder blueprint, all 8 steps.
 | 3. Deterministic checks with unit tests | `src/deterministic-checks.ts` + `.test.ts` |
 | 4. Golden cases | `reference/evals/golden/`, 12 cases (private: built from the real CV) |
 | 5. Judge | `src/runtime/validate.ts` (production semantic validator) and `evals/evaluator.ts` (offline single-output evaluator) — two different jobs, two different rubrics |
-| 6. Runner | `src/runtime/index.ts` (`runProductionSkill`, the live generate→validate→revise pipeline) and `evals/run-evals.ts` (the offline benchmark CLI) |
+| 6. Runner | `src/runtime/index.ts` (`runProductionSkill`, the live generate→validate→revise pipeline, run by the shared runtime) and `evals/run-evals.ts` (the offline benchmark CLI) |
 | 7. Variants | `evals/providers/variants.ts` — A (plain model), B (SKILL.md, single pass), C (the real production pipeline, called directly, never reimplemented) |
-| 8. Runtime loop | `src/runtime/index.ts` — generate → deterministic + semantic validation → bounded, targeted revision → revalidation |
+| 8. Runtime loop | `framework/runtime/` (see `docs/RUNTIME.md`) drives the steps in `src/runtime/skill.ts`: generate → deterministic + semantic validation → bounded, targeted revision → revalidation. The cap, usage accounting and the run trace are the runtime's, not this skill's |
 | + Phrase bank | Table in SKILL.md, rows from the candidate profile, parsed by `src/phrase-bank.ts` |
 | + Preference bank | Table in SKILL.md, rows from the candidate profile, parsed by `src/preference-bank.ts` |
 | + Letter templates | EN and DE fenced blocks in SKILL.md, parsed by `src/templates.ts` |
@@ -74,7 +74,7 @@ Everything under **Free** touches no network and needs no API key.
 ```
 pnpm install
 pnpm typecheck                              # type-check the whole project
-pnpm test                                        # 441 tests, FakeModelProvider only — see below
+pnpm test                                        # 470 tests, FakeModelProvider only — see below
 pnpm test:watch
 pnpm build:skill                            # install as a Claude skill + /cover-letter-writer command
 pnpm build:cv -- --pdf "reference/cv/<file>.pdf" --out reference/cv.md --label "English CV"
@@ -181,13 +181,13 @@ contradict it, and `scripts/build-claude-skill.test.ts` asserts exactly one surv
 
 Each model call gets only what its job needs. The deterministic checks call no model.
 
-| Call | System prompt | User prompt |
-|---|---|---|
-| Generate (generator) | `SKILL.md`, filled from the candidate profile | language, market, the market's contact block, instructions, advert, CV |
-| Validate (validator) | `prompts/validator.md` only, never `SKILL.md`, so it is not primed by the rules it checks | CV, advert, instructions, language, draft |
-| Revise (reviser) | The same text as Generate, so the revision is held to the same rules | the Generate prompt, the previous draft, and only the failures found (`describeFailures`) |
-| Checks (no model) | - | the phrase and preference banks parsed from `SKILL.md`, and the market rules from the profile |
-| Evaluator, pairwise judge (evals only) | their own rubrics, never `SKILL.md`; the pairwise judge is blind | CV, advert, instructions, the output(s) |
+| Call | System prompt | User prompt | Checked by |
+|---|---|---|---|
+| Generate (generator) | `SKILL.md`, filled from the candidate profile | language, market, the market's contact block, instructions, advert, CV | `src/runtime/index.test.ts` (prompt-part measurement: which parts, and their sizes); `src/skill-sections.test.ts` (which sections of `SKILL.md`, and the contact details the checks need) |
+| Validate (validator) | `prompts/validator.md` only, never `SKILL.md`, so it is not primed by the rules it checks | CV, advert, instructions, language, draft | `src/runtime/skill.test.ts` (the validator's system prompt is not `SKILL.md`) |
+| Revise (reviser) | The same text as Generate, so the revision is held to the same rules | the Generate prompt, the previous draft, and only the failures found (`describeFailures`) | `src/runtime/skill.test.ts` (same system prompt as the draft; the failures, not the validator's reply); `src/skill-sections.test.ts` (same selected text) |
+| Checks (no model) | - | the phrase and preference banks parsed from `SKILL.md`, and the market rules from the profile | `src/deterministic-checks.test.ts`, `src/phrase-bank.test.ts`, `src/preference-bank.test.ts` |
+| Evaluator, pairwise judge (evals only) | their own rubrics, never `SKILL.md`; the pairwise judge is blind | CV, advert, instructions, the output(s) | not pinned by a dedicated test |
 
 The candidate's details never live in `SKILL.md`; they are filled in at load time (see above).
 Every call records the size of each prompt part (`--token-report=true` prints them).
@@ -406,7 +406,7 @@ above runs `loadModelRoles()` → `resolveModelRoles()` → `new AnthropicProvid
 
 **Runtime configuration** is split by what a setting is a property of. `src/runtime/runtime-config.json`
 holds what is about this skill's pipeline: `temperature`, `maxRevisionAttempts` (the hard cap on
-bounded, targeted revision passes), and the `thresholds` each semantic-validation score must clear.
+bounded, targeted revision passes, handed to the shared runtime as this run's revision cap; the runtime refuses more than its own ceiling of 10), and the `thresholds` each semantic-validation score must clear.
 `config/models.json` holds what is about a role and its model: the provider, the model, how hard
 that role reasons and the output budget it reasons and answers within — the two have to be chosen
 together, since the model spends one budget on both. No file in this skill names a provider's own
