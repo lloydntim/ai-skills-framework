@@ -24,6 +24,19 @@ export interface RoleModelConfig {
   model: string;
   reasoning?: RoleRuntimeConfig['reasoning'];
   maxOutputTokens?: number;
+  /**
+   * A second model to ask when the first fails in a way that is worth retrying elsewhere (rate
+   * limit, outage). It inherits this role's runtime settings unless it states its own. Optional:
+   * a role without one simply fails.
+   */
+  fallback?: FallbackModelConfig;
+}
+
+export interface FallbackModelConfig {
+  provider: string;
+  model: string;
+  reasoning?: RoleRuntimeConfig['reasoning'];
+  maxOutputTokens?: number;
 }
 
 /** The full model configuration: every role, each with its own provider/model. */
@@ -41,6 +54,15 @@ export interface ResolvedRole {
    * used, not for a caller to re-apply.
    */
   runtime: RoleRuntimeConfig;
+  /** The role's fallback, resolved the same way as the role itself. Absent when none is configured. */
+  fallback?: ResolvedFallback;
+}
+
+export interface ResolvedFallback {
+  provider: ModelProvider;
+  providerName: string;
+  model: string;
+  runtime: RoleRuntimeConfig;
 }
 
 export type ResolvedModelRoles = Record<ModelRole, ResolvedRole>;
@@ -57,8 +79,17 @@ export type ResolvedModelRoles = Record<ModelRole, ResolvedRole>;
 export function toModelRolesConfig(resolved: ResolvedModelRoles): ModelRolesConfig {
   const config = {} as ModelRolesConfig;
   for (const role of MODEL_ROLES) {
-    const { providerName, model, runtime } = resolved[role];
+    const { providerName, model, runtime, fallback } = resolved[role];
     config[role] = { provider: providerName, model, reasoning: runtime.reasoning, maxOutputTokens: runtime.maxOutputTokens };
+    // Written only when configured, so a run made without fallbacks records exactly what it did before.
+    if (fallback) {
+      config[role].fallback = {
+        provider: fallback.providerName,
+        model: fallback.model,
+        reasoning: fallback.runtime.reasoning,
+        maxOutputTokens: fallback.runtime.maxOutputTokens,
+      };
+    }
   }
   return config;
 }

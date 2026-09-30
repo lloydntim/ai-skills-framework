@@ -64,6 +64,20 @@ describe('checkSkillPackage', () => {
     expect(checkSkillPackage(dir).join('\n')).toMatch(/only @skills\/framework/);
   });
 
+  it('reports a runtime block the runtime would refuse, so a bad limit is found before any run', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'skill.json'), 'utf-8'));
+    manifest.runtime = { execution: { maxRevisions: 500 } };
+    write('skill.json', JSON.stringify(manifest));
+    expect(checkSkillPackage(dir).join('\n')).toMatch(/runtime.*ceiling/i);
+  });
+
+  it('accepts a runtime block within the runtime\'s limits', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'skill.json'), 'utf-8'));
+    manifest.runtime = { execution: { maxRevisions: 5 }, budget: { maxCostUsd: 0.5 } };
+    write('skill.json', JSON.stringify(manifest));
+    expect(checkSkillPackage(dir)).toEqual([]);
+  });
+
   it('reports a manifest with an unknown key instead of ignoring it', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'skill.json'), 'utf-8'));
     manifest.prompts.validatr = { file: 'x', version: '1' };

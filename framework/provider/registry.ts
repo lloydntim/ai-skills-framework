@@ -1,6 +1,12 @@
 import { AnthropicProvider } from './anthropic-provider';
-import { MODEL_ROLES, type ModelRole, type ResolvedModelRoles } from './model-roles';
-import { DEFAULT_ROLE_RUNTIME, RoleRuntimeConfigError, RoleRuntimeProvider, parseRoleRuntime } from './role-runtime';
+import { MODEL_ROLES, type ModelRole, type ResolvedFallback, type ResolvedModelRoles } from './model-roles';
+import {
+  DEFAULT_ROLE_RUNTIME,
+  RoleRuntimeConfigError,
+  RoleRuntimeProvider,
+  parseRoleRuntime,
+  type RoleRuntimeConfig,
+} from './role-runtime';
 import type { ModelProvider } from './types';
 
 /**
@@ -86,17 +92,7 @@ function resolveRole(
     throw new ModelConfigError(`Model role "${role}" is missing a valid "model" string.`);
   }
 
-  const factory = factories[providerName];
-  if (!factory) {
-    throw new ModelConfigError(
-      `Model role "${role}" specifies unknown provider "${providerName}". ` +
-        `Known providers: ${Object.keys(factories).join(', ') || '(none registered)'}.`
-    );
-  }
-
-  if (!providerInstances.has(providerName)) {
-    providerInstances.set(providerName, factory());
-  }
+  const shared = sharedProvider(role, providerName, factories, providerInstances);
 
   // RoleRuntimeConfigError is the same class of problem as everything else this function reports —
   // a configuration a caller has to fix — so it is re-thrown as a ModelConfigError rather than
@@ -111,10 +107,61 @@ function resolveRole(
 
   // The runtime wrapper is per role even though the provider instance underneath is shared, so two
   // roles naming the same provider still get their own reasoning and budget.
-  return {
-    provider: new RoleRuntimeProvider(providerInstances.get(providerName)!, runtime),
+  const resolved = {
+    provider: new RoleRuntimeProvider(shared, runtime),
     providerName,
     model,
     runtime,
   };
+
+  if (entry.fallback === undefined) return resolved;
+  return { ...resolved, fallback: resolveFallback(role, entry.fallback, runtime, factories, providerInstances) };
+}
+
+function sharedProvider(
+  role: string,
+  providerName: string,
+  factories: Record<string, ProviderFactory>,
+  providerInstances: Map<string, ModelProvider>
+): ModelProvider {
+  const factory = factories[providerName];
+  if (!factory) {
+    throw new ModelConfigError(
+      `Model role "${role}" specifies unknown provider "${providerName}". ` +
+        `Known providers: ${Object.keys(factories).join(', ') || '(none registered)'}.`
+    );
+  }
+  if (!providerInstances.has(providerName)) providerInstances.set(providerName, factory());
+  return providerInstances.get(providerName)!;
+}
+
+/** A fallback is validated as strictly as the role it backs up, and inherits the role's runtime settings by default. */
+function resolveFallback(
+  role: ModelRole,
+  raw: unknown,
+  inherited: RoleRuntimeConfig,
+  factories: Record<string, ProviderFactory>,
+  providerInstances: Map<string, ModelProvider>
+): ResolvedFallback {
+  const name = `${role}.fallback`;
+  if (!isPlainObject(raw)) {
+    throw new ModelConfigError(`Model role "${name}" must be an object with "provider" and "model" strings.`);
+  }
+  const { provider: providerName, model } = raw;
+  if (typeof providerName !== 'string' || providerName.length === 0) {
+    throw new ModelConfigError(`Model role "${name}" is missing a valid "provider" string.`);
+  }
+  if (typeof model !== 'string' || model.length === 0) {
+    throw new ModelConfigError(`Model role "${name}" is missing a valid "model" string.`);
+  }
+  const shared = sharedProvider(name, providerName, factories, providerInstances);
+
+  let runtime;
+  try {
+    runtime = parseRoleRuntime(name, raw, inherited);
+  } catch (err) {
+    if (err instanceof RoleRuntimeConfigError) throw new ModelConfigError(err.message);
+    throw err;
+  }
+  return { provider: new RoleRuntimeProvider(shared, runtime), providerName, model, runtime };
 }
