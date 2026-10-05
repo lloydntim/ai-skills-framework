@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
+import { RuntimeOverridesSchema } from '../runtime/config';
 
 const Prompt = z.strictObject({ file: z.string().min(1), version: z.string().min(1) });
 const Dataset = z.strictObject({
@@ -36,6 +37,13 @@ export const SkillManifestSchema = z.strictObject({
     golden: Dataset.optional(),
   }),
   export: z.strictObject({ exclude: z.array(z.string()) }).default({ exclude: [] }),
+  /**
+   * Only what this skill does differently from the runtime defaults (framework/runtime/config.ts).
+   * Leave it out, or leave a field out, to take the default; do not copy defaults in.
+   */
+  runtime: RuntimeOverridesSchema.optional(),
+  /** Capabilities the skill needs. Whether they are granted is the runtime's tool policy, not the skill's. */
+  tools: z.strictObject({ required: z.array(z.string().min(1)) }).optional(),
 });
 
 export type SkillManifest = z.infer<typeof SkillManifestSchema>;

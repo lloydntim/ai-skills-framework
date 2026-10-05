@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { loadCases } from '../evals/cases-loader';
 import { MODEL_ROLES } from '../provider/model-roles';
+import { resolveSettings } from '../runtime/config';
 import { parsePromptFile } from '../prompts/prompt-file';
 import { resolveDatasetDir } from './dataset-resolver';
 import { importSpecifiers } from './imports';
@@ -35,6 +36,14 @@ export function checkSkillPackage(skillDir: string): string[] {
     manifest = loadManifest(skillDir);
   } catch (err) {
     return [err instanceof Error ? err.message : String(err)];
+  }
+
+  // The manifest schema only says the block is well-formed; the runtime is what refuses a value it
+  // would not run (for example more revisions than its ceiling), so ask it now rather than at run time.
+  try {
+    resolveSettings({ skill: manifest.runtime });
+  } catch (err) {
+    problems.push(err instanceof Error ? err.message : String(err));
   }
 
   need(manifest.name === path.basename(skillDir), `skill.json name "${manifest.name}" must match the folder name "${path.basename(skillDir)}"`);

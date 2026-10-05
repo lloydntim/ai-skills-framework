@@ -8,6 +8,12 @@ import { SemanticValidatorResponseSchema } from './validator-schema';
 import type { CvTaskInput, RuntimeConfig, ValidationResult } from './types';
 
 
+/** Which layer raised each entry of a result's hardGuardrailFailures. Provenance, not part of the verdict. */
+export interface GuardrailSources {
+  deterministic: string[];
+  judge: string[];
+}
+
 export async function validateDraft(
   input: CvTaskInput,
   draftText: string,
@@ -21,6 +27,22 @@ export async function validateDraft(
    */
   requestType: 'semantic-validation' | 'revalidation' = 'semantic-validation'
 ): Promise<ValidationResult> {
+  return (await validateDraftWithSources(input, draftText, provider, model, config, requestType)).result;
+}
+
+/**
+ * The same validation, also saying which layer raised each guardrail failure. This is the one place
+ * that knows, so it reports it here rather than having the result carry a field that only a
+ * caller wanting to label issues (the runtime adapter, for its trace) would read.
+ */
+export async function validateDraftWithSources(
+  input: CvTaskInput,
+  draftText: string,
+  provider: ModelProvider,
+  model: string,
+  config: RuntimeConfig,
+  requestType: 'semantic-validation' | 'revalidation' = 'semantic-validation'
+): Promise<{ result: ValidationResult; sources: GuardrailSources }> {
   const deterministic = runDeterministicChecks({
     output: draftText,
     requiredExactStrings: input.requiredExactStrings,
@@ -54,7 +76,7 @@ export async function validateDraft(
 
   const judged = parseJsonResponse(result.text, SemanticValidatorResponseSchema, 'Semantic validator');
 
-  const hardGuardrailFailures = [
+  const deterministicFailures = [
     ...deterministic.missingExactStrings.map((s) => `missing required exact string: "${s}"`),
     ...deterministic.missingTerms.map((t) => `missing required term: "${t}"`),
     ...deterministic.matchedForbiddenClaims.map((c) => `forbidden claim present: "${c}"`),
@@ -69,8 +91,8 @@ export async function validateDraft(
           `paragraph/entry structure not preserved: source has ${deterministic.sourceParagraphBreakCount} paragraph breaks, output has ${deterministic.outputParagraphBreakCount}`,
         ]
       : []),
-    ...judged.hardGuardrailFailures,
   ];
+  const hardGuardrailFailures = [...deterministicFailures, ...judged.hardGuardrailFailures];
 
   const failingCriteria: string[] = [];
   if (judged.faithfulness < config.thresholds.faithfulness) failingCriteria.push('faithfulness');
@@ -84,18 +106,21 @@ export async function validateDraft(
   const pass = hardGuardrailFailures.length === 0 && failingCriteria.length === 0;
 
   return {
-    pass,
-    hardGuardrailFailures,
-    scores: {
-      faithfulness: judged.faithfulness,
-      naturalness: judged.naturalness,
-      cvQuality: judged.cvQuality,
-      terminology: judged.terminology,
+    result: {
+      pass,
+      hardGuardrailFailures,
+      scores: {
+        faithfulness: judged.faithfulness,
+        naturalness: judged.naturalness,
+        cvQuality: judged.cvQuality,
+        terminology: judged.terminology,
+      },
+      unsupportedClaims: judged.unsupportedClaims,
+      failingCriteria,
+      usage: result.usage,
+      latencyMs: result.latencyMs,
+      cost: result.cost,
     },
-    unsupportedClaims: judged.unsupportedClaims,
-    failingCriteria,
-    usage: result.usage,
-    latencyMs: result.latencyMs,
-    cost: result.cost,
+    sources: { deterministic: deterministicFailures, judge: judged.hardGuardrailFailures },
   };
 }

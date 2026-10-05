@@ -15,7 +15,8 @@ thing.
 | [skill-builder](skills/skill-builder) | Creates, restructures and evaluates the skills here; holds the blueprint they follow | skills |
 
 The shared code is in [framework/](framework). **How everything fits together is in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Read that first.**
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Read that first.** How a run is executed (the shared
+runtime: lifecycle, limits, tools, traces) is in [docs/RUNTIME.md](docs/RUNTIME.md).
 
 ## Start
 

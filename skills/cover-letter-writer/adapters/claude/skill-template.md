@@ -62,8 +62,12 @@ real capitalisation in the filename, even though the folder is slugified.
 
 | Document | Filename | Format |
 |---|---|---|
-| Job spec | `Company - Role Job Spec - DD MM YY.md` | the advert text as fetched or pasted, unedited |
+| Job spec | `Company - Role Job Spec - DD MM YY` | the advert text as fetched or pasted, unedited, built to `.docx` and `.pdf` with `scripts/build-job-spec.sh`. Not Markdown. |
 | Cover letter | `{{CANDIDATE_NAME}} - Company - Role Cover Letter - DD MM YY` | built to `.docx` and `.pdf` with `scripts/build-letter.sh`, which also checks it fits one page |
+
+**A German advert gets a German document.** When the advert is in German, the letter is an
+`Anschreiben` and the filename says so: `{{CANDIDATE_NAME}} - Company - Role Anschreiben - DD MM YY`.
+"Cover Letter" is for English adverts only. The language is the advert's, as for the letter itself.
 
 Save the job spec even when the advert came from a link, so the application does not depend on a
 posting that will be taken down. Tell the user the folder path once, in one line.

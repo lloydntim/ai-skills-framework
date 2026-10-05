@@ -7,6 +7,7 @@
  */
 import os from 'node:os';
 import path from 'node:path';
+import type { LetterLanguage } from './templates';
 
 /**
  * The company name as a folder: lowercase, punctuation dropped, spaces joined with hyphens.
@@ -97,8 +98,20 @@ export function applicationDir(country: string, company: string, home: string = 
   return path.join(home, 'Desktop', 'job applications', 'countries', country, slugifyCompany(company));
 }
 
-export function jobSpecFilename(company: string, roleTitle: string, date: Date): string {
-  return `${safeForFilename(company)} - ${safeForFilename(roleTitle)} Job Spec - ${formatFileDate(date)}.md`;
+/**
+ * What the letter is called in its filename. A German advert gets a German document, so the file
+ * reads as an Anschreiben and not as a translated "Cover Letter".
+ */
+export function letterDocumentName(language: LetterLanguage): string {
+  return language === 'de' ? 'Anschreiben' : 'Cover Letter';
+}
+
+/**
+ * The job spec's basename, without extension, because build-job-spec.sh appends .docx and .pdf
+ * itself. The spec is kept as a Word and a PDF document, not as Markdown.
+ */
+export function jobSpecBasename(company: string, roleTitle: string, date: Date): string {
+  return `${safeForFilename(company)} - ${safeForFilename(roleTitle)} Job Spec - ${formatFileDate(date)}`;
 }
 
 /**
@@ -109,6 +122,7 @@ export function coverLetterBasename(
   company: string,
   roleTitle: string,
   date: Date,
+  language: LetterLanguage,
 ): string {
-  return `${candidate} - ${safeForFilename(company)} - ${safeForFilename(roleTitle)} Cover Letter - ${formatFileDate(date)}`;
+  return `${candidate} - ${safeForFilename(company)} - ${safeForFilename(roleTitle)} ${letterDocumentName(language)} - ${formatFileDate(date)}`;
 }

@@ -34,7 +34,7 @@ skills/
       prompts.ts                 loads the files in prompts/
       model-config.ts            where this skill's config/models.json lives
       skill-dir.ts               the skill folder's path
-      runtime/                   the production pipeline: generate, validate, revise
+      runtime/                   the skill's steps for the production pipeline (see "How a request runs")
     config/
       models.json                which provider and model plays each role
       models.*.json              optional alternatives (for example, a cheaper set)
@@ -47,6 +47,7 @@ skills/
       history.jsonl              one text-free summary per approved run (tracked)
     adapters/claude/             wraps SKILL.md so Claude Code can install it
 docs/ARCHITECTURE.md             this page
+docs/RUNTIME.md                  the shared runtime: lifecycle, settings, failures, tools, budget, traces
 docs/CONTEXT-ENGINEERING.md      what each model call is shown, and how that was measured
 scripts/export-skill.ts          the export command
 scripts/privacy-scan.ts          what "private" means, for the export and the tracked tree
@@ -62,6 +63,7 @@ The pipeline, prompts, datasets and evals are needed only if the skill has that 
 
 | Shared, in `framework/` | Belongs to the skill |
 |---|---|
+| The run lifecycle, revision cap, budget, tool policy, failure kinds and trace (`framework/runtime/`) | The steps of the pipeline: generate, validate, revise |
 | The model-provider contract and the model roles | The rules that check the output (`checks`) |
 | Reasoning levels, output budgets and how a provider expresses them | Which level and budget each role is configured with |
 | Provider adapters (Anthropic) and the price table | The prompt text and `SKILL.md` |
@@ -101,9 +103,17 @@ input -> generator -> checks + validator -> pass?  -> return the text
                                                    up to maxRevisionAttempts, then return the last text
 ```
 
-`runProductionSkill` in each skill's `src/runtime/index.ts` does this. It records every request, its
-tokens, its time and its cost, by role. The evals call this same function for variant C, so the tests
-of the pipeline are tests of the real thing.
+The loop above is run by the shared runtime, `framework/runtime/`, not by each skill. A skill exports
+its steps (`generate`, `validate`, `revise`, and optionally `prepare`) as a `RuntimeSkill`, and
+`createRuntime(...).execute({ skill, input })` drives them through an explicit lifecycle
+(INITIALISING, PREPARING, EXECUTING, VALIDATING, REVISING, COMPLETED or FAILED), enforces the
+revision cap and any budget, wraps every model call so its tokens, cost and time are recorded, and
+returns a trace of the run. [RUNTIME.md](RUNTIME.md) is the full description.
+
+`runProductionSkill` in a skill's `src/runtime/index.ts` is now a thin wrapper that hands its skill to
+the runtime and returns the result shape it always returned. The evals call this same function for
+variant C, so the tests of the pipeline are tests of the real thing. Both CV Translator and Cover Letter
+Writer run this way, so there is one copy of the loop, the limits, the usage arithmetic and the trace.
 
 Models are only ever reached through the `ModelProvider` interface in `framework/provider/types.ts`.
 Only `framework/provider/anthropic-provider.ts` imports a vendor SDK. Adding another provider means one
@@ -303,6 +313,7 @@ differently from new input and neither the price table nor `estimateCost` distin
 |---|---|
 | Deterministic rules | `src/*checks*.test.ts` |
 | Production pipeline behaviour | `src/runtime/index.test.ts` with fake providers |
+| The shared runtime: states, settings, budget, tools, failures, traces, privacy | `framework/runtime/*.test.ts` |
 | Validation and revision behaviour | `src/runtime/*.test.ts` |
 | Reading a model's structured reply | `framework/llm-json-response.test.ts` and the schema tests |
 | Eval and comparison code | `evals/*.test.ts`, `framework/evals/*.test.ts` |
@@ -438,6 +449,9 @@ cases were replaced with synthetic ones.
 - The per-variant token tracker (`token-tracker.ts`) exists only in cv-translator. The per-request
   report (`framework/evals/token-usage-report.ts`) is shared: both skills print it with `--token-report=true`.
 - Cover Letter Writer's usage ledger (`src/usage`) is its own; it wraps the framework provider.
+- Cover Letter Writer's `evals/aggregate.ts` still has its own `addUsage` and `addOptional`. They fold
+  results across eval cases, not the calls within a run, so they are eval aggregation and not part of the
+  runtime, but they are the same arithmetic as `sumUsage` and `sumOptional` and could share them.
 - Prompt caching is a deliberate follow-up, not an omission: see "What each model call sees". It
   needs a price table that separates cached, cache-writing and new input, which is why it was not
   folded into the reasoning work.

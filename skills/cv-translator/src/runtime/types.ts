@@ -1,4 +1,5 @@
 import type { TokenUsage } from '@skills/framework/provider/types';
+import type { RunTrace } from '@skills/framework/runtime/trace';
 
 export interface CvTaskInput {
   sourceLanguage: string;
@@ -37,6 +38,7 @@ export interface RuntimeConfig {
 
 export interface ValidationResult {
   pass: boolean;
+  /** Absolute failures from either layer: unmet deterministic rules plus judge-reported guardrail breaks. */
   hardGuardrailFailures: string[];
   scores: {
     faithfulness: number;
@@ -80,4 +82,6 @@ export interface ProductionResult {
     validator: RoleUsageSummary;
     reviser: RoleUsageSummary;
   };
+  /** The shared runtime's record of this run: states, calls, tokens, cost and outcome. Holds no text. */
+  trace: RunTrace;
 }

@@ -155,3 +155,43 @@ describe('resolveModelRoles — fails clearly on invalid configuration shape', (
     expect(() => resolveModelRoles(emptyProvider, FAKE_FACTORIES)).toThrow(ModelConfigError);
   });
 });
+
+describe('resolveModelRoles — fallback', () => {
+  const withFallback = (fallback: unknown) => ({ ...VALID_CONFIG, generator: { ...VALID_CONFIG.generator, reasoning: 'low', maxOutputTokens: 4000, fallback } });
+
+  it('resolves no fallback when none is configured, and records none', () => {
+    const roles = resolveModelRoles(VALID_CONFIG, FAKE_FACTORIES);
+    expect(roles.generator.fallback).toBeUndefined();
+    expect(toModelRolesConfig(roles).generator).not.toHaveProperty('fallback');
+  });
+
+  it('resolves a fallback on its own provider and model, inheriting the role\'s runtime settings', () => {
+    const roles = resolveModelRoles(withFallback({ provider: 'other', model: 'other-model' }), FAKE_FACTORIES);
+    const { fallback } = roles.generator;
+    expect(fallback).toMatchObject({ providerName: 'other', model: 'other-model', runtime: { reasoning: 'low', maxOutputTokens: 4000 } });
+    expect(fallback!.provider).toBeInstanceOf(RoleRuntimeProvider);
+    expect(toModelRolesConfig(roles).generator.fallback).toEqual({ provider: 'other', model: 'other-model', reasoning: 'low', maxOutputTokens: 4000 });
+  });
+
+  it('lets the fallback state its own reasoning and budget', () => {
+    const roles = resolveModelRoles(withFallback({ provider: 'other', model: 'm', reasoning: 'high', maxOutputTokens: 9000 }), FAKE_FACTORIES);
+    expect(roles.generator.fallback!.runtime).toEqual({ reasoning: 'high', maxOutputTokens: 9000 });
+  });
+
+  it('shares the provider instance with the roles that name the same provider', () => {
+    const roles = resolveModelRoles(withFallback({ provider: 'fake', model: 'other-model' }), FAKE_FACTORIES);
+    expect((roles.generator.fallback!.provider as RoleRuntimeProvider).inner).toBe((roles.validator.provider as RoleRuntimeProvider).inner);
+  });
+
+  it.each([
+    ['not an object', 'other', /generator\.fallback.*object/],
+    ['no model', { provider: 'other' }, /generator\.fallback.*"model"/],
+    ['no provider', { model: 'm' }, /generator\.fallback.*"provider"/],
+    ['an unknown provider', { provider: 'nowhere', model: 'm' }, /generator\.fallback.*unknown provider "nowhere"/],
+    ['an unknown reasoning rung', { provider: 'other', model: 'm', reasoning: 'extreme' }, /generator\.fallback.*reasoning/],
+    ['a budget out of range', { provider: 'other', model: 'm', maxOutputTokens: 10 }, /generator\.fallback.*maxOutputTokens/],
+  ])('rejects a fallback with %s, when the configuration is read', (_name, fallback, message) => {
+    expect(() => resolveModelRoles(withFallback(fallback), FAKE_FACTORIES)).toThrow(ModelConfigError);
+    expect(() => resolveModelRoles(withFallback(fallback), FAKE_FACTORIES)).toThrow(message);
+  });
+});

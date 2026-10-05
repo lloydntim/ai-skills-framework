@@ -4,7 +4,8 @@ import {
   countryCodeFor,
   coverLetterBasename,
   formatFileDate,
-  jobSpecFilename,
+  jobSpecBasename,
+  letterDocumentName,
   safeForFilename,
   slugifyCompany,
 } from './application-files';
@@ -95,29 +96,43 @@ describe('safeForFilename', () => {
   });
 });
 
-describe('the two filenames', () => {
-  it('never lets a role title introduce a path separator', () => {
-    const name = jobSpecFilename('Atolls', 'Senior Software Engineer (TypeScript, Next.js / Node.js)', DATE);
-    expect(name).not.toContain('/');
-    expect(name).toBe(
-      'Atolls - Senior Software Engineer (TypeScript, Next.js - Node.js) Job Spec - 01 02 26.md',
-    );
+describe('letterDocumentName', () => {
+  it('calls the letter an Anschreiben for a German advert', () => {
+    expect(letterDocumentName('de')).toBe('Anschreiben');
   });
 
-  it('names the job spec after the company and role', () => {
-    expect(jobSpecFilename('MediClean', 'Fullstack Developer', DATE)).toBe(
-      'MediClean - Fullstack Developer Job Spec - 01 02 26.md',
+  it('calls the letter a Cover Letter for an English advert', () => {
+    expect(letterDocumentName('en')).toBe('Cover Letter');
+  });
+});
+
+describe('the two filenames', () => {
+  it('never lets a role title introduce a path separator', () => {
+    const name = jobSpecBasename('Atolls', 'Senior Software Engineer (TypeScript, Next.js / Node.js)', DATE);
+    expect(name).not.toContain('/');
+    expect(name).toBe('Atolls - Senior Software Engineer (TypeScript, Next.js - Node.js) Job Spec - 01 02 26');
+  });
+
+  it('names the job spec after the company and role, without an extension', () => {
+    expect(jobSpecBasename('MediClean', 'Fullstack Developer', DATE)).toBe(
+      'MediClean - Fullstack Developer Job Spec - 01 02 26',
     );
   });
 
   it('leads the cover letter with the candidate and carries no extension', () => {
-    expect(coverLetterBasename('Jordan Sample', 'MediClean', 'Fullstack Developer', DATE)).toBe(
+    expect(coverLetterBasename('Jordan Sample', 'MediClean', 'Fullstack Developer', DATE, 'en')).toBe(
       'Jordan Sample - MediClean - Fullstack Developer Cover Letter - 01 02 26',
     );
   });
 
+  it('files a German letter as an Anschreiben', () => {
+    expect(coverLetterBasename('Jordan Sample', 'MediClean', 'Fullstack Developer', DATE, 'de')).toBe(
+      'Jordan Sample - MediClean - Fullstack Developer Anschreiben - 01 02 26',
+    );
+  });
+
   it('keeps the company readable in the filename even though the folder is slugified', () => {
-    expect(jobSpecFilename('Global Enterprise', 'Frontend Engineer', DATE)).toContain(
+    expect(jobSpecBasename('Global Enterprise', 'Frontend Engineer', DATE)).toContain(
       'Global Enterprise - Frontend Engineer Job Spec',
     );
     expect(applicationDir('de', 'Global Enterprise', '/Users/test')).toContain('global-enterprise');

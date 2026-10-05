@@ -1,14 +1,17 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import '@skills/framework/load-env-on-import';
 import { parseArgs } from '@skills/framework/cli-args';
+import { JsonlTraceSink } from '@skills/framework/runtime/trace';
 import { loadModelRoles } from '../src/model-config';
 import { runProductionSkill } from '../src/runtime';
 import type { CvTaskInput, RuntimeConfig } from '../src/runtime/types';
+import { SKILL_DIR } from '../src/skill-dir';
 import runtimeConfigJson from '../src/runtime/runtime-config.json';
 
 function usageAndExit(): never {
   console.error(`Usage:
-  npm run translate -- --input=<file> --source=<lang> --target=<lang> --instructions="..." [--target-market=<market>] [--out=<file>] [--model=<model-id>] [--models-config=<path>]
+  npm run translate -- --input=<file> --source=<lang> --target=<lang> --instructions="..." [--target-market=<market>] [--out=<file>] [--model=<model-id>] [--models-config=<path>] [--trace=true]
 
 Example:
   npm run translate -- --input=cv-section.txt --source=de --target=en-GB \\
@@ -19,6 +22,9 @@ Example:
 --models-config points to) all at once, for a quick one-off run. To use genuinely different models
 per role (e.g. Haiku to generate, Sonnet to validate), point --models-config at your own JSON file
 following the same { generator, validator, reviser, evaluator, pairwiseJudge } shape instead.
+
+--trace=true appends a record of the run (states, model calls, tokens, cost, outcome; never any
+text) to data/traces/runs.jsonl, which git ignores.
 `);
   process.exit(1);
 }
@@ -53,7 +59,8 @@ async function main() {
     roles.reviser = { ...roles.reviser, model: args.model };
   }
 
-  const result = await runProductionSkill(input, roles, runtimeConfig);
+  const traceSink = args.trace === 'true' ? new JsonlTraceSink(path.join(SKILL_DIR, 'data', 'traces', 'runs.jsonl')) : undefined;
+  const result = await runProductionSkill(input, roles, runtimeConfig, undefined, { traceSink });
 
   if (args.out) {
     fs.writeFileSync(args.out, result.finalText);
@@ -65,6 +72,7 @@ async function main() {
   console.error('');
   console.error(`Validation: ${result.validation.pass ? 'PASS' : 'FAILED (after max revisions)'}`);
   console.error(`Revision attempts used: ${result.revisionAttempts}`);
+  console.error(`Run: ${result.trace.runId}${traceSink ? ' (trace written to data/traces/runs.jsonl)' : ''}`);
   console.error(
     `Scores — faithfulness: ${result.validation.scores.faithfulness}, naturalness: ${result.validation.scores.naturalness}, ` +
       `cvQuality: ${result.validation.scores.cvQuality}, terminology: ${result.validation.scores.terminology}`
